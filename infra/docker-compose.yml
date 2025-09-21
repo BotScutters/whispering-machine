@@ -3,7 +3,7 @@ services:
     image: eclipse-mosquitto:2
     container_name: wm_mosquitto
     ports:
-      - "1883:1883"
+      - "1884:1883"
     volumes:
       - ./mosquitto:/mosquitto
     restart: unless-stopped
