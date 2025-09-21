@@ -1,0 +1,1 @@
+{"type":"object","properties":{"rms":{"type":"number"},"zcr":{"type":"number"},"low":{"type":"number"},"mid":{"type":"number"},"high":{"type":"number"},"ts_ms":{"type":"number"}},"required":["rms","zcr","low","mid","high","ts_ms"]}
