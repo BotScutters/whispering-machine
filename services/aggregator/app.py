@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 import time
-from typing import Any, Dict
+from typing import Any
 
 import orjson
 import paho.mqtt.client as mqtt
@@ -16,6 +16,7 @@ BROKER_PORT = int(os.getenv("BROKER_PORT", "1883"))
 TOPIC_BASE = f"party/{HOUSE_ID}"
 STATE_TOPIC = f"{TOPIC_BASE}/ui/state"
 
+
 class AudioFeatures(BaseModel):
     rms: float
     zcr: float
@@ -24,23 +25,27 @@ class AudioFeatures(BaseModel):
     high: float
     ts_ms: int
 
+
 class Occupancy(BaseModel):
     occupied: bool
     lux: float | None = None
     ts_ms: int
 
-state: Dict[str, Any] = {
+
+state: dict[str, Any] = {
     "noise": {"rms": 0.0, "ts_ms": 0},
     "rooms": {},
     "buttons": {},
     "fabrication": {"level": 0.15},
 }
 
+
 def on_connect(client, userdata, flags, reason_code, properties=None):
     # v2 signature; subscribe after connect/auto-reconnect
     client.subscribe(f"{TOPIC_BASE}/+/audio/features", qos=0)
     client.subscribe(f"{TOPIC_BASE}/+/occupancy/state", qos=0)
     client.subscribe(f"{TOPIC_BASE}/+/poll/vote", qos=0)
+
 
 def on_message(client, userdata, msg):
     global state
@@ -69,10 +74,12 @@ def on_message(client, userdata, msg):
         btn = str(data.get("btn", "unknown"))
         state["buttons"][btn] = state["buttons"].get(btn, 0) + 1
 
+
 def publish_state_forever(client: mqtt.Client):
     while True:
         client.publish(STATE_TOPIC, orjson.dumps(state), qos=0, retain=True)
         time.sleep(0.2)
+
 
 def main():
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="wm-aggregator")
@@ -84,6 +91,7 @@ def main():
         publish_state_forever(client)
     finally:
         client.loop_stop()
+
 
 if __name__ == "__main__":
     main()

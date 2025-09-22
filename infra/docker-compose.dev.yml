@@ -1,0 +1,62 @@
+# Development tools compose file for UnRAID environments
+
+services:
+  dev-tools:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: whispering-machine-dev
+    volumes:
+      - ..:/app
+      - /var/run/docker.sock:/var/run/docker.sock  # For docker-in-docker if needed
+    working_dir: /app
+    networks:
+      - default
+    # Keep container running for interactive use
+    stdin_open: true
+    tty: true
+    # Don't auto-restart - this is a dev tool
+    restart: "no"
+    # Add labels for identification
+    labels:
+      - "com.whisperingmachine.service=dev-tools"
+      - "com.whisperingmachine.type=development"
+
+  # Optional: Dedicated formatting service
+  formatter:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: whispering-machine-formatter
+    volumes:
+      - ..:/app
+    working_dir: /app
+    command: ["/bin/bash", "-c", "sleep infinity"]  # Keep running
+    networks:
+      - default
+    restart: "no"
+    labels:
+      - "com.whisperingmachine.service=formatter"
+      - "com.whisperingmachine.type=development"
+
+  # Optional: MQTT testing service
+  mqtt-tester:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: whispering-machine-mqtt-tester
+    volumes:
+      - ..:/app
+    working_dir: /app
+    command: ["/bin/bash", "-c", "sleep infinity"]  # Keep running
+    networks:
+      - default
+    restart: "no"
+    labels:
+      - "com.whisperingmachine.service=mqtt-tester"
+      - "com.whisperingmachine.type=development"
+
+networks:
+  default:
+    name: whispering-machine-dev
+

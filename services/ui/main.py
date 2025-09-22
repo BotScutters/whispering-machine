@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-from typing import Any, Dict
+from typing import Any
 
 import paho.mqtt.client as mqtt
 from fastapi import FastAPI, WebSocket
@@ -19,18 +19,20 @@ STATE_TOPIC = f"{TOPIC_BASE}/ui/state"
 
 app = FastAPI()
 
-ui_state: Dict[str, Any] = {
+ui_state: dict[str, Any] = {
     "noise": {"rms": 0.0},
     "rooms": {},
     "buttons": {},
     "fabrication": {"level": 0.15},
 }
 _subscribers: set[WebSocket] = set()
-_queue: "asyncio.Queue[Dict[str, Any]]" = asyncio.Queue()
+_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
 _loop: asyncio.AbstractEventLoop | None = None
+
 
 def on_connect(client, userdata, flags, reason_code, properties=None):
     client.subscribe(STATE_TOPIC, qos=0)
+
 
 def on_message(client, userdata, msg):
     """Called in Paho's thread → schedule work onto the asyncio loop safely."""
@@ -41,6 +43,7 @@ def on_message(client, userdata, msg):
     loop: asyncio.AbstractEventLoop = userdata["loop"]
     queue: asyncio.Queue = userdata["queue"]
     loop.call_soon_threadsafe(queue.put_nowait, data)
+
 
 @app.on_event("startup")
 async def startup():
@@ -60,6 +63,7 @@ async def startup():
         c.loop_forever()
 
     import threading
+
     threading.Thread(target=mqtt_thread, daemon=True).start()
 
     async def fanout():
@@ -76,10 +80,12 @@ async def startup():
 
     asyncio.create_task(fanout())
 
+
 @app.get("/")
 def index():
-    with open("static/index.html", "r", encoding="utf-8") as f:
+    with open("static/index.html", encoding="utf-8") as f:
         return HTMLResponse(f.read())
+
 
 @app.websocket("/ws")
 async def ws_endpoint(ws: WebSocket):
@@ -92,6 +98,8 @@ async def ws_endpoint(ws: WebSocket):
     finally:
         _subscribers.discard(ws)
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("main:app", host="0.0.0.0", port=UI_PORT, reload=False)
