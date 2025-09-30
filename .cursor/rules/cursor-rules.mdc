@@ -1,0 +1,48 @@
+---
+description: Comprehensive project rules and guidelines for agents working on Whispering Machine
+globs:
+alwaysApply: true
+---
+# Cursor Rules for Whispering Machine
+
+## Pre-Development Checklist
+- Always read `docs/ARCHITECTURE.md`, `docs/TICKETS.md`, and `docs/AGENT_MEMORY.md` before proposing changes
+- Check existing code patterns in `services/`, `esphome/`, `esp/` before implementing
+- Review MQTT schemas in `schemas/` directory for payload validation
+
+## Code Standards
+- **Python**: 3.10, Google style, line length 88, use type hints + docstrings
+- **Formatting**: Black + Ruff + isort for Python; run `./dev.sh fmt` before committing
+- **Async**: Prefer asyncio; validate MQTT payloads with Pydantic models
+- **Logging**: Use structured logs to stdout, include context and timestamps
+
+## Architecture Constraints
+- **Privacy**: Do not stream raw audio; remote nodes publish features only
+- **Networking**: Use service DNS + port 1883 inside compose; host port mappings are for LAN tools only
+- **MQTT Topics**: Follow `party/<house>/<node>/<domain>/<signal>` pattern
+- **Message Format**: Small JSON with stable keys and unix `ts_ms` timestamp
+
+## Development Workflow
+- Pick a single ticket from `docs/TICKETS.md` and restate acceptance criteria
+- Propose minimal plan with file deltas before implementing
+- Keep PRs small and focused; test locally with `./dev.sh up`
+- Update `docs/AGENT_MEMORY.md` with any new rules or gotchas discovered
+- Mark tickets as done in `docs/TICKETS.md` with commit hash
+
+## Testing Requirements
+- Test MQTT message flows with `mosquitto_sub` and `mosquitto_pub`
+- Verify UI updates with screenshots/GIFs for visual changes
+- Check service recovery after broker restarts
+- Validate feature behavior with actual sensor inputs
+
+## Common Pitfalls (from Agent Memory)
+- **Paho MQTT v2**: Use 5-arg callback signature `(client, userdata, flags, reason_code, properties=None)`
+- **Port Usage**: Inside compose use service DNS + 1883, not host port 1884
+- **Message Validation**: Always validate MQTT payloads with Pydantic models
+- **Error Handling**: Services must gracefully handle broker disconnections and reconnections
+
+## Don'ts
+- Don't change MQTT shapes without updating `schemas/` and `ARCHITECTURE.md`
+- Don't add heavy dependencies unless justified in PR description
+- Don't implement features not listed in tickets without discussion
+- Don't bypass the aggregator for direct UI updates
