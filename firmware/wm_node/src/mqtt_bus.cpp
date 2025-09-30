@@ -4,6 +4,7 @@
 #include <PubSubClient.h>
 #include "config.h"
 #include "topics.h"
+#include "mqtt_bus.h"
 
 static WiFiClient s_wifi;
 static PubSubClient s_mqtt(s_wifi);

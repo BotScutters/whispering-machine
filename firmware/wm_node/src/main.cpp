@@ -57,12 +57,12 @@ void loop() {
   ArduinoOTA.handle();
   encoder_service();
 
-  static uint32_t t_fast=0, t_slow=0, t_hb=0;
+  static uint32_t t_fast=0, t_slow=0, hb_ms=0;
   uint32_t t = millis();
 
   // Heartbeat every 5s (twinkle)
-  if (t - t_hb >= 5000) {
-    t_hb = t;
+  if (t - hb_ms >= 5000) {
+    hb_ms = t;
     StaticJsonDocument<96> j;
     j["ts_ms"] = t;
     char out[96]; size_t n = serializeJson(j, out, sizeof(out));

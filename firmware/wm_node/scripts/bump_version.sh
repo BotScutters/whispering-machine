@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-FW_DIR="$ROOT_DIR/firmware/wm_node"
+FW_DIR="$ROOT_DIR"
 HDR="$FW_DIR/src/wm_version.h"
 
 cd "$ROOT_DIR"
