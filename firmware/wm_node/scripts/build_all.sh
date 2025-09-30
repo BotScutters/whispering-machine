@@ -1,0 +1,1 @@
+# builds each env once; uploads to all `*-ota` envs

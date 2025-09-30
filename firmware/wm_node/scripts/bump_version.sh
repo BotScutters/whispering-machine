@@ -1,0 +1,1 @@
+# embeds git sha/date into `-D WM_VERSION="..."`
