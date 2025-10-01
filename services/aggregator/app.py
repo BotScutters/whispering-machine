@@ -28,7 +28,6 @@ class AudioFeatures(BaseModel):
 
 class Occupancy(BaseModel):
     occupied: bool
-    lux: float | None = None
     ts_ms: int
 
 

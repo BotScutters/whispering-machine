@@ -31,6 +31,22 @@
 - **Links**: Issue #123
 - **Tags**: `#docker` `#mqtt` `#networking`
 
+### 2025-01-27: ESP32 PlatformIO Implementation
+- **What Happened**: ESP32 nodes implemented using PlatformIO instead of ESPHome for custom audio processing
+- **Root Cause**: Need for custom I²S audio processing, encoder handling, and LED ring control
+- **Rule/Lesson**: **ESP32 nodes use PlatformIO with Arduino framework** in `firmware/wm_node/`. Use `secrets.ini` for Wi-Fi config, DRY config with `common.ini` and per-node environments
+- **Impact**: More control over hardware interfaces, custom audio feature extraction, OTA updates
+- **Links**: `firmware/wm_node/README.md`
+- **Tags**: `#esp32` `#platformio` `#firmware` `#audio`
+
+### 2025-01-27: ESP32 MQTT Topic Structure
+- **What Happened**: ESP32 nodes publish to specific topic patterns matching the aggregator expectations
+- **Root Cause**: Need for consistent topic structure across all nodes for aggregator processing
+- **Rule/Lesson**: **ESP32 topics follow `party/<house>/<node>/<domain>/<signal>` pattern**. Key topics: `audio/features`, `occupancy/state`, `input/encoder`, `input/button`, `sys/heartbeat`
+- **Impact**: Enables proper aggregator processing and UI updates
+- **Links**: `firmware/wm_node/src/topics.h`
+- **Tags**: `#esp32` `#mqtt` `#topics` `#aggregator`
+
 ## Memory Categories
 
 ### MQTT Patterns
@@ -52,6 +68,13 @@
 - Real-time updates via WebSocket
 - State management through aggregator
 - Visual feedback requirements
+
+### ESP32 & Firmware
+- PlatformIO with Arduino framework for custom hardware control
+- I²S audio processing for feature extraction
+- MQTT publishing with proper topic structure
+- OTA updates via ArduinoOTA
+- Hardware: INMP441 mic, PIR sensor, rotary encoder, WS2812 LED ring
 
 ## How to Add New Entries
 1. Use the exact format above

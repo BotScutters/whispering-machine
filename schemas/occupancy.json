@@ -1,1 +1,1 @@
-{"type":"object","properties":{"occupied":{"type":"boolean"},"lux":{"type":["number","null"]},"ts_ms":{"type":"number"}},"required":["occupied","ts_ms"]}
+{"type":"object","properties":{"occupied":{"type":"boolean"},"ts_ms":{"type":"number"}},"required":["occupied","ts_ms"]}

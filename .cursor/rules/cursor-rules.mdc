@@ -7,7 +7,7 @@ alwaysApply: true
 
 ## Pre-Development Checklist
 - Always read `docs/ARCHITECTURE.md`, `docs/TICKETS.md`, and `docs/AGENT_MEMORY.md` before proposing changes
-- Check existing code patterns in `services/`, `esphome/`, `esp/` before implementing
+- Check existing code patterns in `services/`, `firmware/` before implementing
 - Review MQTT schemas in `schemas/` directory for payload validation
 
 ## Code Standards
@@ -21,6 +21,13 @@ alwaysApply: true
 - **Networking**: Use service DNS + port 1883 inside compose; host port mappings are for LAN tools only
 - **MQTT Topics**: Follow `party/<house>/<node>/<domain>/<signal>` pattern
 - **Message Format**: Small JSON with stable keys and unix `ts_ms` timestamp
+
+## ESP32 Firmware
+- **PlatformIO**: Custom Arduino framework in `firmware/wm_node/`
+- **Configuration**: DRY config with `secrets.ini` (Wi-Fi), per-node environments
+- **Hardware**: INMP441 mic, PIR sensor, rotary encoder, WS2812 LED ring
+- **Build**: `pio run -e node1-usb -t upload` (first time), `pio run -e node1-ota -t upload` (OTA)
+- **Topics**: `audio/features`, `occupancy/state`, `input/encoder`, `input/button`, `sys/heartbeat`
 
 ## Development Workflow
 - Pick a single ticket from `docs/TICKETS.md` and restate acceptance criteria

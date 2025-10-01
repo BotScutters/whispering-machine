@@ -1,0 +1,1 @@
+{"type":"object","properties":{"ts_ms":{"type":"number"}},"required":["ts_ms"]}

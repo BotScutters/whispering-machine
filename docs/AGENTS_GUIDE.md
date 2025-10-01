@@ -37,10 +37,10 @@ Deliver a live "party tracker" dashboard that provides real-time insights into h
 - **House ID**: Unique identifier for each installation (e.g., "house1", "house2")
 - **Node**: Physical sensor unit (e.g., "kitchen", "living_room", "bathroom")
 - **Domain**: Data category (e.g., "audio", "occupancy", "environment")
-- **Signal**: Specific measurement (e.g., "features", "state", "lux")
+- **Signal**: Specific measurement (e.g., "features", "state", "heartbeat")
 
 ## Architecture Overview
-1. **Sensors** (ESP32/ESPHome) → publish to MQTT topics
+1. **Sensors** (ESP32 PlatformIO) → publish to MQTT topics
 2. **Aggregator** (Python) → validates, processes, and publishes unified state
 3. **UI** (FastAPI + WebSocket) → serves dashboard and pushes real-time updates
 4. **LED Daemon** (Raspberry Pi) → drives visual effects based on mood

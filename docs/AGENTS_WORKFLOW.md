@@ -4,7 +4,7 @@
 - `docs/ARCHITECTURE.md`
 - `docs/TASKS.md` and `docs/TICKETS.md`
 - `docs/AGENTS_GUIDE.md`, `docs/CODING_STANDARDS.md`
-- Existing code under `services/`, `esphome/`, `esp/`, `infra/`
+- Existing code under `services/`, `firmware/`, `infra/`
 
 ## Rules of Engagement
 1) Pick a **single ticket**; restate acceptance criteria.

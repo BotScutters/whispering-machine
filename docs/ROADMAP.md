@@ -6,7 +6,7 @@
 - LED daemon minimal mapping
 
 **Phase 2:**
-- BH1750 + button poll node
+- Enhanced PIR + encoder/button node features
 - Fabrication toggles and badges
 - Persistence (SQLite/Parquet) + daily export
 

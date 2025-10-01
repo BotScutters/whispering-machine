@@ -1,7 +1,3 @@
-Awesome—here’s a drop-in **`README.md`** for `firmware/wm_node/`. It’s tuned to your setup (DRY config, secrets.ini, OTA-first, encoder added, BH1750 removed).
-
----
-
 # Whispering Machine — ESP32 Node Firmware
 
 Small ESP32 nodes that sense **sound intensity (INMP441)** and **motion (PIR)**, expose a **rotary encoder + push**, and drive a **WS2812 LED ring** for local feedback. Nodes publish to MQTT and accept ring commands, feeding the party-tracker dashboard.

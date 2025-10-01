@@ -1,0 +1,1 @@
+{"type":"object","properties":{"pos":{"type":"number"},"delta":{"type":"number"},"ts_ms":{"type":"number"}},"required":["pos","delta","ts_ms"]}

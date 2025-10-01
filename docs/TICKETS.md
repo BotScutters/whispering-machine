@@ -34,23 +34,27 @@
 **Test:**
 - Publish moods manually; verify visually.
 
-## T-004 ESPHome: PIR node YAML hardening
-**Goal:** De-bounce + battery-friendly PIR.
+## T-004 ESP32: PIR sensor debouncing + retention
+**Goal:** Improve PIR reliability and state persistence.
 **Tasks:**
-- `delayed_off`, `on_boot` health publish, retained birth message.
+- Add hardware debouncing (0.1 µF caps) or software debouncing
+- Implement retained MQTT messages for state persistence
+- Add `on_boot` health publish
 **Acceptance:**
 - No chattering; retains last state after broker restart.
 **Test:**
 - Restart broker; `mosquitto_sub` shows retained state.
 
-## T-005 ESPHome: BH1750 node + lux tiles
-**Goal:** Add lux to UI; show day/night indicator.
+## T-005 ESP32: Enhanced PIR sensor features
+**Goal:** Improve PIR sensor reliability and add advanced occupancy detection.
 **Tasks:**
-- Publish `lux` 0.2–0.5 Hz; UI tile pill “bright/dim.”
+- Add hardware debouncing improvements
+- Implement occupancy confidence scoring
+- Add motion history tracking for better detection
 **Acceptance:** 
-- UI updates; pill matches thresholds.
+- More reliable occupancy detection with fewer false positives.
 **Test:** 
-- Cover/uncover sensor; see tile change.
+- Test with various motion patterns; verify improved accuracy.
 
 ## T-006 Aggregator: Persistence layer
 **Goal:** Save highlights to SQLite/Parquet.
@@ -80,12 +84,14 @@
 **Test:**
 - Publish pause true; ensure behavior.
 
-## T-009 ESP32 Audio (PlatformIO): Real RMS/ZCR/3-band
-**Goal:** Replace placeholders.
+## T-009 ESP32: Audio feature extraction optimization
+**Goal:** Improve audio processing performance and accuracy.
 **Tasks:**
-- I2S 16 kHz mono; window 1 s; compute RMS, ZCR, 3 IIR bands.
+- Optimize I²S 16 kHz mono processing; window 1 s
+- Fine-tune RMS, ZCR, 3 IIR bands computation
+- Add frequency domain analysis if needed
 **Acceptance:**
-- Features change with tone/noise input.
+- Features change with tone/noise input; stable performance.
 **Test:**
 - Play pink noise / sine; verify band behavior.
 
@@ -97,6 +103,28 @@
 - Commands run on UnRAID with Docker installed.
 **Test:**
 - Call each command; green.
+
+## T-011 ESP32: Multi-node deployment automation
+**Goal:** Streamline deployment to multiple ESP32 nodes.
+**Tasks:**
+- Create `scripts/build_all.sh` for OTA updates to all nodes
+- Add `scripts/flash_usb.sh` for initial USB flashing
+- Implement `scripts/bump_version.sh` for version tracking
+**Acceptance:**
+- Single command updates all nodes via OTA.
+**Test:**
+- Run build script; verify all nodes receive updates.
+
+## T-012 ESP32: LED ring mood integration
+**Goal:** Connect LED ring to aggregator mood topics.
+**Tasks:**
+- Subscribe to `party/<house>/mood` topics
+- Map mood states to LED patterns (idle pulse, busy swirl, spike flicker, alert red)
+- Implement smooth transitions between patterns
+**Acceptance:**
+- LED ring reflects real-time mood changes.
+**Test:**
+- Publish mood changes; verify LED patterns.
 
 ---
 (Keep adding more tickets as scope increases.)
