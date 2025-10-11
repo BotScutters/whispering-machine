@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whispering Machine - Simple Debug</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            padding: 1rem;
+        }
+
+        h1 {
+            color: #00ff88;
+            margin-bottom: 1rem;
+        }
+
+        .panel {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .panel h2 {
+            color: #00ff88;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin: 0.25rem;
+        }
+
+        .status.connected {
+            background: #001100;
+            color: #00ff88;
+            border: 1px solid #00ff88;
+        }
+
+        .status.disconnected {
+            background: #330000;
+            color: #ff4444;
+            border: 1px solid #ff4444;
+        }
+
+        .mqtt-log {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 0.5rem;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .mqtt-message {
+            margin-bottom: 0.5rem;
+            padding: 0.25rem;
+            border-left: 3px solid #00ff88;
+        }
+
+        .mqtt-topic {
+            color: #00aaff;
+            font-weight: bold;
+        }
+
+        .mqtt-payload {
+            color: #ffaa00;
+        }
+
+        .mqtt-timestamp {
+            color: #888;
+            font-size: 0.75rem;
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .data-card {
+            background: #222;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .data-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .data-label {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Whispering Machine - Simple Debug</h1>
+
+    <div class="panel">
+        <h2>Connection Status</h2>
+        <div>
+            <span class="status disconnected" id="wsStatus">Main WS: Connecting...</span>
+            <span class="status disconnected" id="wsDebugStatus">Debug WS: Connecting...</span>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>📊 Current Audio Features</h2>
+        <div class="data-grid">
+            <div class="data-card">
+                <div class="data-value" id="rms">--</div>
+                <div class="data-label">RMS</div>
+            </div>
+            <div class="data-card">
+                <div class="data-value" id="zcr">--</div>
+                <div class="data-label">ZCR</div>
+            </div>
+            <div class="data-card">
+                <div class="data-value" id="low">--</div>
+                <div class="data-label">Low</div>
+            </div>
+            <div class="data-card">
+                <div class="data-value" id="mid">--</div>
+                <div class="data-label">Mid</div>
+            </div>
+            <div class="data-card">
+                <div class="data-value" id="high">--</div>
+                <div class="data-label">High</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>🚪 Occupancy Status</h2>
+        <div id="rooms" class="data-grid">
+            <!-- Rooms will be added here -->
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>📡 MQTT Messages (Last 50)</h2>
+        <div class="mqtt-log" id="mqttLog">
+            <!-- MQTT messages will appear here -->
+        </div>
+    </div>
+
+    <script>
+        console.log('Starting Simple Debug UI...');
+
+        const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const host = location.host;
+
+        // Main WebSocket (aggregated state)
+        const ws = new WebSocket(`${protocol}//${host}/ws`);
+        const wsStatus = document.getElementById('wsStatus');
+
+        ws.onopen = () => {
+            console.log('Main WebSocket connected');
+            wsStatus.textContent = 'Main WS: Connected';
+            wsStatus.className = 'status connected';
+        };
+
+        ws.onclose = () => {
+            console.log('Main WebSocket closed');
+            wsStatus.textContent = 'Main WS: Disconnected';
+            wsStatus.className = 'status disconnected';
+        };
+
+        ws.onerror = (error) => {
+            console.error('Main WebSocket error:', error);
+            wsStatus.textContent = 'Main WS: Error';
+            wsStatus.className = 'status disconnected';
+        };
+
+        ws.onmessage = (event) => {
+            console.log('Main WS message:', event.data);
+            try {
+                const data = JSON.parse(event.data);
+                
+                // Update audio features
+                if (data.noise) {
+                    document.getElementById('rms').textContent = data.noise.rms?.toFixed(6) || '--';
+                    document.getElementById('zcr').textContent = data.noise.zcr?.toFixed(6) || '--';
+                    document.getElementById('low').textContent = data.noise.low?.toFixed(6) || '--';
+                    document.getElementById('mid').textContent = data.noise.mid?.toFixed(6) || '--';
+                    document.getElementById('high').textContent = data.noise.high?.toFixed(6) || '--';
+                }
+                
+                // Update rooms
+                if (data.rooms) {
+                    const roomsDiv = document.getElementById('rooms');
+                    roomsDiv.innerHTML = '';
+                    Object.entries(data.rooms).forEach(([name, status]) => {
+                        const roomCard = document.createElement('div');
+                        roomCard.className = 'data-card';
+                        roomCard.innerHTML = `
+                            <div class="data-value">${status.occupied ? 'OCCUPIED' : 'EMPTY'}</div>
+                            <div class="data-label">${name}</div>
+                        `;
+                        roomsDiv.appendChild(roomCard);
+                    });
+                }
+            } catch (error) {
+                console.error('Error parsing main WS message:', error);
+            }
+        };
+
+        // Debug WebSocket (raw MQTT)
+        const wsDebug = new WebSocket(`${protocol}//${host}/ws/debug`);
+        const wsDebugStatus = document.getElementById('wsDebugStatus');
+        const mqttLog = document.getElementById('mqttLog');
+
+        wsDebug.onopen = () => {
+            console.log('Debug WebSocket connected');
+            wsDebugStatus.textContent = 'Debug WS: Connected';
+            wsDebugStatus.className = 'status connected';
+        };
+
+        wsDebug.onclose = () => {
+            console.log('Debug WebSocket closed');
+            wsDebugStatus.textContent = 'Debug WS: Disconnected';
+            wsDebugStatus.className = 'status disconnected';
+        };
+
+        wsDebug.onerror = (error) => {
+            console.error('Debug WebSocket error:', error);
+            wsDebugStatus.textContent = 'Debug WS: Error';
+            wsDebugStatus.className = 'status disconnected';
+        };
+
+        wsDebug.onmessage = (event) => {
+            console.log('Debug WS message:', event.data);
+            try {
+                const data = JSON.parse(event.data);
+                
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'mqtt-message';
+                
+                const timestamp = new Date(data.timestamp || Date.now()).toLocaleTimeString();
+                
+                msgDiv.innerHTML = `
+                    <div class="mqtt-timestamp">${timestamp}</div>
+                    <div class="mqtt-topic">${data.topic || 'unknown'}</div>
+                    <div class="mqtt-payload">${JSON.stringify(data.payload, null, 2)}</div>
+                `;
+                
+                mqttLog.insertBefore(msgDiv, mqttLog.firstChild);
+                
+                // Keep only last 50 messages
+                while (mqttLog.children.length > 50) {
+                    mqttLog.removeChild(mqttLog.lastChild);
+                }
+            } catch (error) {
+                console.error('Error parsing debug WS message:', error);
+            }
+        };
+    </script>
+</body>
+</html>
+
+

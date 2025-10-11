@@ -84,16 +84,16 @@
 **Test:**
 - Publish pause true; ensure behavior.
 
-## T-009 ESP32: Audio feature extraction optimization
-**Goal:** Improve audio processing performance and accuracy.
+## T-009 ESP32: Audio feature extraction - ZCR and frequency bands
+**Goal:** Implement ZCR and 3-band frequency analysis (currently pegged at 0).
 **Tasks:**
-- Optimize I²S 16 kHz mono processing; window 1 s
-- Fine-tune RMS, ZCR, 3 IIR bands computation
-- Add frequency domain analysis if needed
+- Implement zero-crossing rate calculation in I²S audio processing
+- Add 3-band IIR filters (low/mid/high) for frequency analysis
+- Optimize computation to maintain ~10 Hz publish rate
 **Acceptance:**
-- Features change with tone/noise input; stable performance.
+- ZCR, low, mid, high values change with different audio inputs.
 **Test:**
-- Play pink noise / sine; verify band behavior.
+- Play pink noise / sine wave; verify all features respond appropriately.
 
 ## T-010 DevEx: Development scripts
 **Goal:** Standardize dev commands for UnRAID environment.
@@ -115,16 +115,101 @@
 **Test:**
 - Run build script; verify all nodes receive updates.
 
-## T-012 ESP32: LED ring mood integration
-**Goal:** Connect LED ring to aggregator mood topics.
+## T-012 ESP32: LED ring behavior system
+**Goal:** Implement comprehensive LED ring behavior system with multiple modes.
 **Tasks:**
-- Subscribe to `party/<house>/mood` topics
-- Map mood states to LED patterns (idle pulse, busy swirl, spike flicker, alert red)
-- Implement smooth transitions between patterns
+- Publish LED ring state at 1-5 Hz to `party/<house>/<node>/ring/state`
+- Create behavior modes: idle breathing, audio-reactive, occupancy-responsive, swirling rainbow, aurora glow, siren
+- Add encoder button to cycle through visualization modes
+- Add encoder rotation to modify current mode parameters (speed, intensity, color, etc.)
+- Implement ensemble-based "active mode" driven by audio + PIR with time smoothing
+- Add per-pixel RGB state publishing for debug UI validation
 **Acceptance:**
-- LED ring reflects real-time mood changes.
+- LED ring publishes state; debug UI shows live ring simulation
+- Button cycles modes; encoder modifies parameters
+- Ring responds to audio intensity and occupancy changes
 **Test:**
-- Publish mood changes; verify LED patterns.
+- Rotate encoder, press button; verify mode changes in debug UI
+- Generate audio/motion; verify ring responds appropriately
+
+## T-013 ESP32: PIR raw value publishing
+**Goal:** Publish raw PIR sensor values for calibration and proximity detection.
+**Tasks:**
+- Add analog PIR value reading (if supported by AM312)
+- Publish raw PIR values in occupancy message: `{"occupied": bool, "raw_value": int, "ts_ms": int}`
+- Add hysteresis and threshold configuration for occupancy determination
+**Acceptance:**
+- Debug UI shows raw PIR values; can tune thresholds for proximity detection.
+**Test:**
+- Approach sensor at varying distances; observe raw value changes
+
+## T-014 ESP32: Encoder/button signal debugging
+**Goal:** Fix encoder signal inconsistencies and improve button tracking.
+**Tasks:**
+- Debug encoder position/delta calculation issues
+- Add button press/release events to `input/button` topic
+- Verify encoder signals from all nodes reach aggregator correctly
+- Add per-node encoder state to debug UI
+**Acceptance:**
+- Encoder delta shows incremental changes, not resets
+- Button presses visible in debug UI
+- Both node1 and node2 encoder signals distinguish properly
+**Test:**
+- Rotate encoder clockwise/counterclockwise; verify delta direction
+- Press button; see event in MQTT log
+
+## T-015 Debug UI: Modular signal plotting
+**Goal:** Allow adding/removing any numeric signal from any node to charts.
+**Tasks:**
+- Create dynamic "Add Signal" interface for selecting node + signal path
+- Support plotting arbitrary JSON paths (e.g., `node1.audio.rms`, `node2.occupancy.raw_value`)
+- Allow multiple signals on same chart with auto-scaling
+- Add per-signal visibility toggle and color picker
+- Save chart configuration to localStorage
+**Acceptance:**
+- Can plot any combination of signals from any nodes
+- Configuration persists across page refreshes
+**Test:**
+- Add signals from multiple nodes; verify plotting
+- Refresh page; verify configuration restored
+
+## T-016 Debug UI: Enhanced MQTT debugger
+**Goal:** Improve MQTT message inspection and filtering.
+**Tasks:**
+- Add topic tree view showing hierarchy
+- Add message rate/frequency indicators per topic
+- Implement JSON path search within payloads
+- Add message replay/republish functionality
+**Acceptance:**
+- Can easily browse and filter MQTT topics
+- Can see message rates and inspect payload details
+**Test:**
+- Filter by topic pattern; verify messages shown
+- Check message rate indicators
+
+## T-017 ESP32: LED ring state publishing
+**Goal:** Publish LED ring state for debug UI validation.
+**Tasks:**
+- Add `ring/state` topic publishing at 1-5 Hz
+- Include per-pixel RGB values: `{"pixels": [[r,g,b], ...], "brightness": float, "mode": string, "ts_ms": int}`
+- Optimize payload size (consider compression or delta encoding)
+**Acceptance:**
+- Debug UI receives and renders LED ring state accurately
+**Test:**
+- Change LED patterns; verify debug UI simulation matches physical ring
+
+## T-018 Aggregator: Generic node/signal routing
+**Goal:** Remove hard-coded node names; support dynamic node discovery.
+**Tasks:**
+- Implement dynamic topic subscription: `party/<house>/+/+/+`
+- Auto-discover nodes from incoming messages
+- Support arbitrary signal types (not just audio/occupancy)
+- Update UI state schema to be node-agnostic
+**Acceptance:**
+- Adding new nodes requires no aggregator code changes
+- All node signals automatically routed to UI
+**Test:**
+- Add new node; verify auto-discovery and routing
 
 ---
 (Keep adding more tickets as scope increases.)

@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whispering Machine - Debug UI</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: #1a1a1a;
+            padding: 1rem;
+            border-bottom: 2px solid #333;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            color: #00ff88;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #333;
+        }
+
+        .status-indicator.connected {
+            background: #00ff88;
+            box-shadow: 0 0 10px #00ff88;
+        }
+
+        .status-indicator.error {
+            background: #ff4444;
+            box-shadow: 0 0 10px #ff4444;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .panel {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .panel h2 {
+            color: #00ff88;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 200px;
+            margin-bottom: 1rem;
+        }
+
+        .time-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .time-btn {
+            padding: 0.25rem 0.75rem;
+            background: #333;
+            border: 1px solid #555;
+            color: #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .time-btn.active {
+            background: #00ff88;
+            color: #000;
+        }
+
+        .signal-controls {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: #222;
+            border: 1px solid #444;
+            border-radius: 4px;
+        }
+
+        .signal-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .signal-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            background: #333;
+            border: 1px solid #555;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .signal-tag .color-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .signal-tag .remove-btn {
+            cursor: pointer;
+            color: #ff4444;
+            font-weight: bold;
+        }
+
+        .add-signal-form {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+
+        .add-signal-form select,
+        .add-signal-form input {
+            background: #111;
+            border: 1px solid #333;
+            color: #e0e0e0;
+            border-radius: 4px;
+            padding: 0.4rem;
+        }
+
+        .status-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .status-table th {
+            background: #222;
+            color: #00ff88;
+            padding: 0.5rem;
+            text-align: left;
+            border: 1px solid #333;
+        }
+
+        .status-table td {
+            padding: 0.5rem;
+            border: 1px solid #333;
+            font-family: 'Courier New', monospace;
+        }
+
+        .status-table tr:hover {
+            background: #222;
+        }
+
+        .status-table .signal-name {
+            color: #888;
+            font-weight: bold;
+        }
+
+        .led-ring {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 1rem 0;
+        }
+
+        .led-ring-simulator {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: #222;
+            border: 2px solid #444;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .led-pixel {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #333;
+            border: 1px solid #555;
+        }
+
+        .mqtt-debugger {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 0.5rem;
+        }
+
+        .mqtt-message {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+            padding: 0.25rem;
+            border-left: 3px solid #00ff88;
+            background: #111;
+        }
+
+        .mqtt-topic {
+            color: #00aaff;
+            font-weight: bold;
+        }
+
+        .mqtt-payload {
+            color: #ffaa00;
+            margin-left: 1rem;
+        }
+
+        .mqtt-timestamp {
+            color: #888;
+            font-size: 0.7rem;
+        }
+
+        .room-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .room-card {
+            background: #222;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 0.5rem;
+            text-align: center;
+        }
+
+        .room-card.occupied {
+            border-color: #00ff88;
+            background: #001100;
+        }
+
+        .room-card.empty {
+            border-color: #666;
+            background: #111;
+        }
+
+        .sensor-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .sensor-label {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 0.25rem;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .button-card {
+            background: #222;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 0.5rem;
+            text-align: center;
+        }
+
+        .button-count {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ffaa00;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .system-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+
+        .metric-card {
+            background: #222;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+
+        .error-message {
+            background: #330000;
+            border: 1px solid #ff4444;
+            color: #ff4444;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 0.5rem 1rem;
+            background: #333;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .connection-status.connected {
+            background: #001100;
+            color: #00ff88;
+        }
+
+        .connection-status.disconnected {
+            background: #330000;
+            color: #ff4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status" id="connectionStatus">Connecting...</div>
+    <div id="errorBanner" class="error-message" style="display:none;margin:10px">JS error — check console. Details will appear here.</div>
+    
+    <div class="header">
+        <h1>🔧 Whispering Machine - Debug UI</h1>
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-indicator" id="wsStatus"></div>
+                <span>WebSocket</span>
+            </div>
+            <div class="status-item">
+                <div class="status-indicator" id="mqttStatus"></div>
+                <span>MQTT</span>
+            </div>
+            <div class="status-item">
+                <span>House: <strong id="houseId">houseA</strong></span>
+            </div>
+            <div class="status-item">
+                <span>Fabrication: <strong id="fabricationLevel">0%</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- Audio Features Panel -->
+        <div class="panel full-width">
+            <h2>📈 Signal Plotting</h2>
+            <div class="signal-controls">
+                <strong style="color:#00ff88">Active Signals:</strong>
+                <div class="signal-list" id="signalList">
+                    <!-- Active signals will appear here -->
+                </div>
+                <div class="add-signal-form">
+                    <select id="nodeSelector">
+                        <option value="">Select Node...</option>
+                    </select>
+                    <select id="signalSelector">
+                        <option value="">Select Signal...</option>
+                        <option value="audio.rms">Audio RMS</option>
+                        <option value="audio.zcr">Audio ZCR</option>
+                        <option value="audio.low">Audio Low Band</option>
+                        <option value="audio.mid">Audio Mid Band</option>
+                        <option value="audio.high">Audio High Band</option>
+                        <option value="occupancy.occupied">Occupancy (0/1)</option>
+                        <option value="occupancy.raw_value">PIR Raw Value</option>
+                        <option value="encoder.pos">Encoder Position</option>
+                        <option value="encoder.delta">Encoder Delta</option>
+                    </select>
+                    <button class="time-btn" id="addSignalBtn">+ Add Signal</button>
+                </div>
+            </div>
+            <div class="time-controls">
+                <button class="time-btn active" data-duration="5">5s</button>
+                <button class="time-btn" data-duration="30">30s</button>
+                <button class="time-btn" data-duration="60">1m</button>
+                <button class="time-btn" data-duration="300">5m</button>
+                <button class="time-btn" data-duration="3600">1h</button>
+            </div>
+            <div class="chart-container" style="height: 400px">
+                <canvas id="audioChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Audio Status Table -->
+        <div class="panel">
+            <h2>🎵 Audio Status</h2>
+            <div id="audioStatusTable"></div>
+        </div>
+
+        <!-- LED Ring Simulator -->
+        <div class="panel">
+            <h2>💡 LED Ring Simulator</h2>
+            <div class="led-ring">
+                <div class="led-ring-simulator" id="ledRing">
+                    <!-- LED pixels will be generated by JavaScript -->
+                </div>
+            </div>
+            <div class="system-metrics">
+                <div class="metric-card">
+                    <div class="metric-value" id="ledBrightness">0%</div>
+                    <div class="metric-label">Brightness</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="ledOn">OFF</div>
+                    <div class="metric-label">Status</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Occupancy Status -->
+        <div class="panel">
+            <h2>🚪 Occupancy Status</h2>
+            <div class="room-status" id="roomStatus">
+                <!-- Room cards will be generated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Encoder/Button Status -->
+        <div class="panel">
+            <h2>🎛️ Encoder & Button Status</h2>
+            <div id="encoderStatus" class="data-grid">
+                <!-- Encoder/button cards will be generated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- MQTT Debugger -->
+        <div class="panel full-width">
+            <h2>📡 MQTT Debugger</h2>
+            <div class="time-controls">
+                <input id="mqttFilter" placeholder="Filter topics (substring or regex)" style="flex:1;background:#111;border:1px solid #333;color:#e0e0e0;border-radius:4px;padding:.4rem" />
+                <button id="clearLogBtn" class="time-btn">Clear</button>
+            </div>
+            <div class="mqtt-debugger" id="mqttDebugger">
+                <!-- MQTT messages will be displayed here -->
+            </div>
+        </div>
+
+        <!-- System Status -->
+        <div class="panel full-width">
+            <h2>⚙️ System Status</h2>
+            <div class="system-metrics">
+                <div class="metric-card">
+                    <div class="metric-value" id="messageCount">0</div>
+                    <div class="metric-label">Messages</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="uptime">00:00:00</div>
+                    <div class="metric-label">Uptime</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="lastUpdate">Never</div>
+                    <div class="metric-label">Last Update</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="roomCount">0</div>
+                    <div class="metric-label">Active Rooms</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class WhisperingMachineDebugUI {
+            constructor() {
+                console.log('[debug-full] constructor start');
+                this.ws = null;
+                this.audioChart = null;
+                this.audioData = [];
+                this.nodeAudioData = {};
+                this.roomsState = {};
+                this.encoderState = {}; // {nodeId: {pos, delta, ts_ms}}
+                this.mqttMessages = [];
+                this.mqttFilter = '';
+                this.startTime = Date.now();
+                this.messageCount = 0;
+                this.currentTimeRange = 5; // seconds
+                
+                // Modular signal tracking
+                this.activeSignals = []; // [{id, node, path, color, visible, data: [{x, y}]}]
+                this.signalIdCounter = 0;
+                this.nodeData = {}; // {nodeId: {audio: {...}, occupancy: {...}, encoder: {...}}}
+                this.discoveredNodes = new Set();
+                this.colorPalette = ['#00ff88', '#ffaa00', '#ff4444', '#4444ff', '#ff44ff', '#22d3ee', '#f472b6', '#a3e635'];
+                
+                this.initErrorHandlers();
+                this.initWebSocket();
+                try {
+                    this.initCharts();
+                } catch (e) {
+                    console.error('initCharts failed:', e);
+                    this.showError('Charts failed to initialize — Chart.js or time adapter may be unavailable.');
+                }
+                this.initLEDRing();
+                this.initTimeControls();
+                this.initMqttControls();
+                this.initSignalControls();
+                this.loadSignalConfig();
+                // Periodic chart refresh for smoother live updates
+                setInterval(() => {
+                    try { this.updateModularChart(); } catch (e) { /* noop */ }
+                }, 300);
+                this.startUptimeCounter();
+            }
+
+            initErrorHandlers() {
+                window.addEventListener('error', (ev) => {
+                    const msg = ev?.error?.message || ev?.message || 'Unknown error';
+                    this.showError(`Runtime error: ${msg}`);
+                });
+                window.addEventListener('unhandledrejection', (ev) => {
+                    const msg = (ev && (ev.reason?.message || String(ev.reason))) || 'Unhandled promise rejection';
+                    this.showError(msg);
+                });
+            }
+
+            showError(text) {
+                const el = document.getElementById('errorBanner');
+                if (!el) return;
+                el.textContent = text;
+                el.style.display = 'block';
+            }
+
+            initWebSocket() {
+                const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+                console.log('[debug-full] initWebSocket to', `${protocol}//${location.host}`);
+                // Main UI WebSocket
+                this.ws = new WebSocket(`${protocol}//${location.host}/ws`);
+                this.ws.onopen = () => {
+                    console.log('[debug-full] /ws connected');
+                    this.updateConnectionStatus('connected');
+                    this.updateStatusIndicator('wsStatus', true);
+                };
+                this.ws.onclose = () => {
+                    console.log('[debug-full] /ws closed');
+                    this.updateConnectionStatus('disconnected');
+                    this.updateStatusIndicator('wsStatus', false);
+                    setTimeout(() => this.initWebSocket(), 3000);
+                };
+                this.ws.onerror = () => {
+                    console.log('[debug-full] /ws error');
+                    this.updateConnectionStatus('error');
+                    this.updateStatusIndicator('wsStatus', false);
+                };
+                this.ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        this.handleMessage(data);
+                    } catch (error) {
+                        console.error('Error parsing WebSocket message:', error);
+                    }
+                };
+                
+                // Debug WebSocket for raw MQTT messages
+                this.debugWs = new WebSocket(`${protocol}//${location.host}/ws/debug`);
+                this.debugWs.onopen = () => {
+                    console.log('[debug-full] /ws/debug connected');
+                    this.updateStatusIndicator('mqttStatus', true);
+                };
+                this.debugWs.onclose = () => {
+                    console.log('[debug-full] /ws/debug closed');
+                    this.updateStatusIndicator('mqttStatus', false);
+                    setTimeout(() => this.initWebSocket(), 3000);
+                };
+                this.debugWs.onerror = () => {
+                    console.log('[debug-full] /ws/debug error');
+                    this.updateStatusIndicator('mqttStatus', false);
+                };
+                this.debugWs.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        this.handleDebugMessage(data);
+                    } catch (error) {
+                        console.error('Error parsing debug WebSocket message:', error);
+                    }
+                };
+            }
+
+            initCharts() {
+                // Audio Chart - start with empty datasets, modular system will populate
+                const audioCtx = document.getElementById('audioChart').getContext('2d');
+                this.audioChart = new Chart(audioCtx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: []
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    displayFormats: {
+                                        second: 'HH:mm:ss',
+                                        minute: 'HH:mm',
+                                        hour: 'HH:mm'
+                                    }
+                                },
+                                ticks: {
+                                    color: '#888'
+                                },
+                                grid: {
+                                    color: '#333'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    color: '#888'
+                                },
+                                grid: {
+                                    color: '#333'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#e0e0e0'
+                                },
+                                onClick: (e, legendItem, legend) => {
+                                    // Click legend to remove signal
+                                    const index = legendItem.datasetIndex;
+                                    const dataset = legend.chart.data.datasets[index];
+                                    if (dataset && dataset.label) {
+                                        // Find signal by label (node/path format)
+                                        const signal = this.activeSignals.find(s => 
+                                            `${s.node}/${s.path}` === dataset.label
+                                        );
+                                        if (signal) {
+                                            this.removeSignal(signal.id);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            initLEDRing() {
+                const ledRing = document.getElementById('ledRing');
+                const ledCount = 8; // Based on NEOPIXEL_COUNT in config
+                
+                for (let i = 0; i < ledCount; i++) {
+                    const led = document.createElement('div');
+                    led.className = 'led-pixel';
+                    led.id = `led-${i}`;
+                    
+                    // Position LEDs in a circle
+                    const angle = (i / ledCount) * 2 * Math.PI;
+                    const radius = 80; // Distance from center
+                    const x = Math.cos(angle) * radius;
+                    const y = Math.sin(angle) * radius;
+                    
+                    led.style.left = `calc(50% + ${x}px)`;
+                    led.style.top = `calc(50% + ${y}px)`;
+                    led.style.transform = 'translate(-50%, -50%)';
+                    
+                    ledRing.appendChild(led);
+                }
+            }
+
+            initTimeControls() {
+                const timeButtons = document.querySelectorAll('.time-btn');
+                timeButtons.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        timeButtons.forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.currentTimeRange = parseInt(btn.dataset.duration);
+                        this.updateChartTimeRange();
+                    });
+                });
+            }
+
+            initMqttControls() {
+                const filterInput = document.getElementById('mqttFilter');
+                const clearBtn = document.getElementById('clearLogBtn');
+                if (!filterInput || !clearBtn) {
+                    console.warn('MQTT controls not found - skipping');
+                    return;
+                }
+                filterInput.addEventListener('input', () => {
+                    this.mqttFilter = filterInput.value.trim();
+                    this.redrawMqttLog();
+                });
+                clearBtn.addEventListener('click', () => {
+                    document.getElementById('mqttDebugger').innerHTML = '';
+                });
+            }
+
+            startUptimeCounter() {
+                setInterval(() => {
+                    const uptime = Date.now() - this.startTime;
+                    const hours = Math.floor(uptime / 3600000);
+                    const minutes = Math.floor((uptime % 3600000) / 60000);
+                    const seconds = Math.floor((uptime % 60000) / 1000);
+                    document.getElementById('uptime').textContent = 
+                        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+
+            handleMessage(data) {
+                this.messageCount++;
+                this.updateSystemMetrics();
+                
+                // Update audio data
+                if (data.noise) {
+                    this.updateAudioData(data.noise);
+                }
+                
+                // Update room occupancy
+                if (data.rooms) {
+                    this.updateRoomStatus(data.rooms);
+                }
+                
+                // Update buttons
+                if (data.buttons) {
+                    this.updateButtonStatus(data.buttons);
+                }
+                
+                // Update fabrication level
+                if (data.fabrication) {
+                    document.getElementById('fabricationLevel').textContent = 
+                        Math.round((data.fabrication.level || 0) * 100) + '%';
+                }
+            }
+
+            handleDebugMessage(data) {
+                // Handle raw MQTT debug messages
+                this.addMQTTMessage(data.topic, data.payload);
+                
+                // Parse topic: party/<house>/<node>/<domain>/<signal>
+                const parts = data.topic.split('/');
+                if (parts.length >= 5) {
+                    const nodeId = parts[2];
+                    const domain = parts[3];
+                    const signal = parts[4];
+                    
+                    // Update structured node data
+                    if (signal === 'features') {
+                        this.updateNodeData(nodeId, 'audio', data.payload);
+                    } else if (signal === 'state') {
+                        this.updateNodeData(nodeId, 'occupancy', data.payload);
+                    } else if (signal === 'encoder') {
+                        this.updateNodeData(nodeId, 'encoder', data.payload);
+                    } else if (signal === 'button') {
+                        this.updateNodeData(nodeId, 'button', data.payload);
+                    }
+                }
+                
+                // Update specific data based on topic
+                if (data.topic.includes('/audio/features')) {
+                    const parts = data.topic.split('/');
+                    const nodeId = parts.length >= 3 ? parts[2] : null;
+                    this.updateAudioData(data.payload, nodeId);
+                } else if (data.topic.includes('/occupancy/state')) {
+                    // Extract node name from topic
+                    const parts = data.topic.split('/');
+                    if (parts.length >= 3) {
+                        const nodeName = parts[2];
+                        this.roomsState[nodeName] = data.payload;
+                        this.updateRoomStatus(this.roomsState);
+                    }
+                } else if (data.topic.includes('/input/encoder')) {
+                    const parts = data.topic.split('/');
+                    const nodeId = parts.length >= 3 ? parts[2] : null;
+                    this.updateEncoderData(data.payload, nodeId);
+                } else if (data.topic.includes('/input/button')) {
+                    const parts = data.topic.split('/');
+                    const nodeId = parts.length >= 3 ? parts[2] : null;
+                    this.updateButtonData(data.payload, nodeId);
+                } else if (data.topic.includes('/ring/cmd')) {
+                    this.updateLEDRing(data.payload);
+                }
+            }
+
+            updateAudioData(noiseData, nodeId = null) {
+                // Deprecated - now handled by updateNodeData
+            }
+
+            updateChartTimeRange() {
+                // Deprecated - now using updateModularChart
+                this.updateModularChart();
+            }
+
+            updateRoomStatus(rooms) {
+                const roomStatus = document.getElementById('roomStatus');
+                roomStatus.innerHTML = '';
+                
+                Object.entries(rooms).forEach(([name, status]) => {
+                    const roomCard = document.createElement('div');
+                    roomCard.className = `room-card ${status.occupied ? 'occupied' : 'empty'}`;
+                    roomCard.innerHTML = `
+                        <div class="sensor-label">${name}</div>
+                        <div class="sensor-value">${status.occupied ? 'OCCUPIED' : 'EMPTY'}</div>
+                    `;
+                    roomStatus.appendChild(roomCard);
+                });
+                
+                document.getElementById('roomCount').textContent = Object.keys(rooms).length;
+            }
+
+            updateButtonStatus(buttons) {
+                const buttonGrid = document.getElementById('buttonGrid');
+                buttonGrid.innerHTML = '';
+                
+                Object.entries(buttons).forEach(([name, count]) => {
+                    const buttonCard = document.createElement('div');
+                    buttonCard.className = 'button-card';
+                    buttonCard.innerHTML = `
+                        <div class="sensor-label">${name}</div>
+                        <div class="button-count">${count}</div>
+                    `;
+                    buttonGrid.appendChild(buttonCard);
+                });
+            }
+
+            addMQTTMessage(topic, payload) {
+                const logEl = document.getElementById('mqttDebugger');
+                if (this.mqttFilter) {
+                    const f = this.mqttFilter;
+                    let pass = false;
+                    try {
+                        const rx = new RegExp(f);
+                        pass = rx.test(topic);
+                    } catch {
+                        pass = topic.includes(f);
+                    }
+                    if (!pass) return;
+                }
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'mqtt-message';
+                
+                const timestamp = new Date().toLocaleTimeString();
+                messageDiv.innerHTML = `
+                    <div class="mqtt-timestamp">${timestamp}</div>
+                    <div class="mqtt-topic">${topic}</div>
+                    <div class="mqtt-payload">${JSON.stringify(payload, null, 2)}</div>
+                `;
+                
+                logEl.insertBefore(messageDiv, logEl.firstChild);
+                
+                while (logEl.children.length > 50) {
+                    logEl.removeChild(logEl.lastChild);
+                }
+            }
+
+            redrawMqttLog() {
+                const log = document.getElementById('mqttDebugger');
+                const all = Array.from(log.children).reverse();
+                log.innerHTML = '';
+                all.forEach(div => {
+                    const topic = div.querySelector('.mqtt-topic')?.textContent || '';
+                    let pass = true;
+                    if (this.mqttFilter) {
+                        try { pass = new RegExp(this.mqttFilter).test(topic); } catch { pass = topic.includes(this.mqttFilter); }
+                    }
+                    if (pass) log.insertBefore(div, log.firstChild);
+                });
+            }
+
+            updateEncoderData(encoderData, nodeId = null) {
+                if (nodeId) {
+                    this.encoderState[nodeId] = encoderData;
+                    this.updateEncoderStatus();
+                }
+            }
+
+            updateButtonData(buttonData, nodeId = null) {
+                // Button data is handled through the aggregator for now
+                // Could be enhanced to show per-node button state
+            }
+
+            updateEncoderStatus() {
+                const encoderStatus = document.getElementById('encoderStatus');
+                if (!encoderStatus) return;
+                
+                const nodes = Object.keys(this.encoderState).sort();
+                if (nodes.length === 0) {
+                    encoderStatus.innerHTML = '<p style="color:#888">No encoder data yet...</p>';
+                    return;
+                }
+                
+                let html = '<table class="status-table"><thead><tr><th>Signal</th>';
+                nodes.forEach(node => {
+                    html += `<th>${node}</th>`;
+                });
+                html += '</tr></thead><tbody>';
+                
+                ['pos', 'delta'].forEach(signal => {
+                    html += `<tr><td class="signal-name">${signal}</td>`;
+                    nodes.forEach(node => {
+                        const value = this.encoderState[node]?.[signal];
+                        html += `<td>${value !== undefined ? value : '--'}</td>`;
+                    });
+                    html += '</tr>';
+                });
+                
+                html += '</tbody></table>';
+                encoderStatus.innerHTML = html;
+            }
+
+            updateAudioStatusTable() {
+                const table = document.getElementById('audioStatusTable');
+                if (!table) return;
+                
+                const audioNodes = Object.keys(this.nodeData).filter(n => this.nodeData[n].audio).sort();
+                if (audioNodes.length === 0) {
+                    table.innerHTML = '<p style="color:#888">No audio data yet...</p>';
+                    return;
+                }
+                
+                let html = '<table class="status-table"><thead><tr><th>Signal</th>';
+                audioNodes.forEach(node => {
+                    html += `<th>${node}</th>`;
+                });
+                html += '</tr></thead><tbody>';
+                
+                ['rms', 'zcr', 'low', 'mid', 'high'].forEach(signal => {
+                    html += `<tr><td class="signal-name">${signal}</td>`;
+                    audioNodes.forEach(node => {
+                        const value = this.nodeData[node]?.audio?.[signal];
+                        html += `<td>${value !== undefined ? value.toFixed(6) : '--'}</td>`;
+                    });
+                    html += '</tr>';
+                });
+                
+                html += '</tbody></table>';
+                table.innerHTML = html;
+            }
+
+            updateLEDRing(ringData) {
+                const brightness = Math.round((ringData.b || 0) * 100);
+                const isOn = ringData.on || false;
+                
+                document.getElementById('ledBrightness').textContent = brightness + '%';
+                document.getElementById('ledOn').textContent = isOn ? 'ON' : 'OFF';
+                
+                // Update LED ring visualization
+                const leds = document.querySelectorAll('.led-pixel');
+                leds.forEach(led => {
+                    if (isOn) {
+                        led.style.background = `hsl(120, 100%, ${brightness}%)`;
+                        led.style.boxShadow = `0 0 10px hsl(120, 100%, ${brightness}%)`;
+                    } else {
+                        led.style.background = '#333';
+                        led.style.boxShadow = 'none';
+                    }
+                });
+            }
+
+
+            updateSystemMetrics() {
+                document.getElementById('messageCount').textContent = this.messageCount;
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            }
+
+            updateConnectionStatus(status) {
+                const statusEl = document.getElementById('connectionStatus');
+                statusEl.textContent = status === 'connected' ? 'Connected' : 
+                                     status === 'disconnected' ? 'Disconnected' : 'Error';
+                statusEl.className = `connection-status ${status}`;
+            }
+
+            updateStatusIndicator(elementId, connected) {
+                const indicator = document.getElementById(elementId);
+                indicator.className = `status-indicator ${connected ? 'connected' : 'error'}`;
+            }
+
+
+            // ===== MODULAR SIGNAL PLOTTING =====
+
+            initSignalControls() {
+                const addBtn = document.getElementById('addSignalBtn');
+                if (!addBtn) {
+                    console.error('addSignalBtn not found');
+                    return;
+                }
+                addBtn.addEventListener('click', () => this.addSignal());
+                
+                // Pre-populate with node1 and node2 audio RMS for initial view
+                setTimeout(() => {
+                    if (this.activeSignals.length === 0) {
+                        this.addSignalProgrammatic('node1', 'audio.rms', this.colorPalette[0]);
+                        this.addSignalProgrammatic('node2', 'audio.rms', this.colorPalette[1]);
+                    }
+                }, 1000);
+            }
+
+            addSignal() {
+                const nodeSelector = document.getElementById('nodeSelector');
+                const signalSelector = document.getElementById('signalSelector');
+                
+                const node = nodeSelector.value;
+                const path = signalSelector.value;
+                
+                if (!node || !path) {
+                    alert('Please select both a node and a signal');
+                    return;
+                }
+                
+                const color = this.colorPalette[this.activeSignals.length % this.colorPalette.length];
+                this.addSignalProgrammatic(node, path, color);
+            }
+
+            addSignalProgrammatic(node, path, color) {
+                const id = this.signalIdCounter++;
+                const signal = {
+                    id,
+                    node,
+                    path,
+                    color,
+                    visible: true,
+                    data: []
+                };
+                
+                this.activeSignals.push(signal);
+                this.renderSignalList();
+                this.saveSignalConfig();
+                this.updateModularChart();
+            }
+
+            removeSignal(id) {
+                this.activeSignals = this.activeSignals.filter(s => s.id !== id);
+                this.renderSignalList();
+                this.saveSignalConfig();
+                this.updateModularChart();
+            }
+
+            toggleSignalVisibility(id) {
+                const signal = this.activeSignals.find(s => s.id === id);
+                if (signal) {
+                    signal.visible = !signal.visible;
+                    this.renderSignalList();
+                    this.saveSignalConfig();
+                    this.updateModularChart();
+                }
+            }
+
+            changeSignalColor(id) {
+                const signal = this.activeSignals.find(s => s.id === id);
+                if (!signal) return;
+                
+                const newColor = prompt('Enter hex color (e.g., #00ff88):', signal.color);
+                if (newColor && /^#[0-9A-Fa-f]{6}$/.test(newColor)) {
+                    signal.color = newColor;
+                    this.renderSignalList();
+                    this.saveSignalConfig();
+                    this.updateModularChart();
+                }
+            }
+
+            renderSignalList() {
+                const signalList = document.getElementById('signalList');
+                signalList.innerHTML = '';
+                
+                this.activeSignals.forEach(signal => {
+                    const tag = document.createElement('div');
+                    tag.className = 'signal-tag';
+                    tag.style.opacity = signal.visible ? '1' : '0.5';
+                    tag.innerHTML = `
+                        <div class="color-dot" style="background:${signal.color}" title="Click to change color"></div>
+                        <span style="cursor:pointer" title="Click to toggle visibility">${signal.node}/${signal.path}</span>
+                        <span class="remove-btn" title="Remove signal">×</span>
+                    `;
+                    
+                    tag.querySelector('.color-dot').addEventListener('click', () => this.changeSignalColor(signal.id));
+                    tag.querySelector('span:nth-child(2)').addEventListener('click', () => this.toggleSignalVisibility(signal.id));
+                    tag.querySelector('.remove-btn').addEventListener('click', () => this.removeSignal(signal.id));
+                    
+                    signalList.appendChild(tag);
+                });
+            }
+
+            updateNodeData(nodeId, domain, payload) {
+                if (!this.nodeData[nodeId]) {
+                    this.nodeData[nodeId] = {};
+                    this.discoveredNodes.add(nodeId);
+                    this.updateNodeSelector();
+                }
+                
+                if (!this.nodeData[nodeId][domain]) {
+                    this.nodeData[nodeId][domain] = {};
+                }
+                
+                Object.assign(this.nodeData[nodeId][domain], payload);
+                
+                // Update signal data for active signals
+                const now = new Date();
+                this.activeSignals.forEach(signal => {
+                    if (signal.node === nodeId) {
+                        const value = this.getSignalValue(nodeId, signal.path);
+                        if (value !== null && value !== undefined) {
+                            signal.data.push({x: now, y: value});
+                            // Keep last 1 hour of data max
+                            const hourAgo = new Date(now.getTime() - 3600000);
+                            signal.data = signal.data.filter(d => d.x >= hourAgo);
+                        }
+                    }
+                });
+                
+                // Update status tables
+                if (domain === 'audio') {
+                    this.updateAudioStatusTable();
+                } else if (domain === 'encoder') {
+                    this.encoderState[nodeId] = payload;
+                    this.updateEncoderStatus();
+                }
+            }
+
+            getSignalValue(nodeId, path) {
+                const parts = path.split('.');
+                let obj = this.nodeData[nodeId];
+                
+                for (const part of parts) {
+                    if (obj === undefined || obj === null) return null;
+                    obj = obj[part];
+                }
+                
+                // Convert boolean to number for plotting
+                if (typeof obj === 'boolean') return obj ? 1 : 0;
+                if (typeof obj === 'number') return obj;
+                return null;
+            }
+
+            updateNodeSelector() {
+                const nodeSelector = document.getElementById('nodeSelector');
+                const currentValue = nodeSelector.value;
+                
+                nodeSelector.innerHTML = '<option value="">Select Node...</option>';
+                Array.from(this.discoveredNodes).sort().forEach(nodeId => {
+                    const opt = document.createElement('option');
+                    opt.value = nodeId;
+                    opt.textContent = nodeId;
+                    nodeSelector.appendChild(opt);
+                });
+                
+                if (currentValue) nodeSelector.value = currentValue;
+            }
+
+            updateModularChart() {
+                if (!this.audioChart || !this.audioChart.data) return;
+                
+                const now = new Date();
+                const cutoff = new Date(now.getTime() - this.currentTimeRange * 1000);
+                
+                // Build datasets from active signals
+                const datasets = [];
+                this.activeSignals.forEach(signal => {
+                    if (!signal.visible) return;
+                    
+                    const filteredData = signal.data.filter(d => d.x >= cutoff);
+                    datasets.push({
+                        label: `${signal.node}/${signal.path}`,
+                        data: filteredData,
+                        borderColor: signal.color,
+                        backgroundColor: 'transparent',
+                        tension: 0.1,
+                        parsing: {
+                            xAxisKey: 'x',
+                            yAxisKey: 'y'
+                        }
+                    });
+                });
+                
+                this.audioChart.data.datasets = datasets;
+                this.audioChart.update('none');
+            }
+
+            saveSignalConfig() {
+                const config = this.activeSignals.map(s => ({
+                    node: s.node,
+                    path: s.path,
+                    color: s.color,
+                    visible: s.visible
+                }));
+                localStorage.setItem('wm-debug-signals', JSON.stringify(config));
+            }
+
+            loadSignalConfig() {
+                try {
+                    const stored = localStorage.getItem('wm-debug-signals');
+                    if (stored) {
+                        const config = JSON.parse(stored);
+                        config.forEach(s => {
+                            this.addSignalProgrammatic(s.node, s.path, s.color);
+                            const signal = this.activeSignals[this.activeSignals.length - 1];
+                            if (signal) signal.visible = s.visible;
+                        });
+                        this.renderSignalList();
+                    }
+                } catch (e) {
+                    console.error('Failed to load signal config:', e);
+                }
+            }
+        }
+
+        // Initialize the debug UI when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new WhisperingMachineDebugUI();
+        });
+    </script>
+</body>
+</html>

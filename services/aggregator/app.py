@@ -32,7 +32,7 @@ class Occupancy(BaseModel):
 
 
 state: dict[str, Any] = {
-    "noise": {"rms": 0.0, "ts_ms": 0},
+    "noise": {"rms": 0.0, "zcr": 0.0, "low": 0.0, "mid": 0.0, "high": 0.0, "ts_ms": 0},
     "rooms": {},
     "buttons": {},
     "fabrication": {"level": 0.15},
@@ -57,6 +57,10 @@ def on_message(client, userdata, msg):
         try:
             af = AudioFeatures(**data)
             state["noise"]["rms"] = af.rms
+            state["noise"]["zcr"] = af.zcr
+            state["noise"]["low"] = af.low
+            state["noise"]["mid"] = af.mid
+            state["noise"]["high"] = af.high
             state["noise"]["ts_ms"] = af.ts_ms
         except Exception:
             pass
@@ -65,7 +69,7 @@ def on_message(client, userdata, msg):
         try:
             oc = Occupancy(**data)
             node_id = msg.topic.split("/")[2]
-            state["rooms"][node_id] = bool(oc.occupied)
+            state["rooms"][node_id] = {"occupied": bool(oc.occupied), "ts_ms": oc.ts_ms}
         except Exception:
             pass
 
