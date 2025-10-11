@@ -64,7 +64,7 @@ void loop() {
   if (t - hb_ms >= 5000) {
     hb_ms = t;
     StaticJsonDocument<96> j;
-    j["ts_ms"] = t;
+    j["ts_ms"] = get_timestamp_ms();
     char out[96]; size_t n = serializeJson(j, out, sizeof(out));
     mqtt_publish(t_hb().c_str(), out, false);
 
@@ -79,7 +79,7 @@ void loop() {
     StaticJsonDocument<160> j;
     j["rms"] = rms;
     j["zcr"] = 0.0; j["low"] = 0.0; j["mid"] = 0.0; j["high"] = 0.0;
-    j["ts_ms"] = t;
+    j["ts_ms"] = get_timestamp_ms();
     char out[160]; size_t n = serializeJson(j, out, sizeof(out));
     mqtt_publish(t_features().c_str(), out, false);
   }
@@ -90,7 +90,7 @@ void loop() {
     bool occ = pir_occupied();
     StaticJsonDocument<96> j;
     j["occupied"] = occ;
-    j["ts_ms"] = t;
+    j["ts_ms"] = get_timestamp_ms();
     char out[96]; size_t n = serializeJson(j, out, sizeof(out));
     mqtt_publish(t_pir().c_str(), out, false);
   }

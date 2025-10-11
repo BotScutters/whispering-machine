@@ -5,6 +5,7 @@
 #include "topics.h"
 #include "mqtt_bus.h"
 #include "ring.h"
+#include "wifi_ota.h"
 
 static volatile int32_t g_pos = 0;
 static volatile int32_t g_delta = 0;
@@ -58,7 +59,7 @@ void encoder_service() {
       StaticJsonDocument<128> j;
       j["pos"] = p;
       j["delta"] = d;  // Delta since last publish (incremental, not cumulative)
-      j["ts_ms"] = now;
+      j["ts_ms"] = get_timestamp_ms();
       char out[128]; size_t n = serializeJson(j, out, sizeof(out));
       mqtt_publish(t_enc().c_str(), out, false);
       
@@ -76,7 +77,7 @@ void encoder_service() {
     StaticJsonDocument<96> j;
     j["pressed"] = is_pressed;
     j["event"] = is_pressed ? "press" : "release";  // Explicit event type
-    j["ts_ms"] = now;
+    j["ts_ms"] = get_timestamp_ms();
     char out[96]; size_t n = serializeJson(j, out, sizeof(out));
     mqtt_publish(t_btn().c_str(), out, false);
 

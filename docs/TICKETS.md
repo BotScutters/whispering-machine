@@ -143,20 +143,23 @@
 **Test:**
 - Approach sensor at varying distances; observe raw value changes
 
-## T-014 ESP32: Encoder/button signal debugging
+## T-014 ESP32: Encoder/button signal debugging ✅ DONE
 **Goal:** Fix encoder signal inconsistencies and improve button tracking.
 **Tasks:**
-- Debug encoder position/delta calculation issues
-- Add button press/release events to `input/button` topic
-- Verify encoder signals from all nodes reach aggregator correctly
-- Add per-node encoder state to debug UI
+- ✅ Debug encoder position/delta calculation issues
+- ✅ Add button press/release events to `input/button` topic
+- ✅ Verify encoder signals from all nodes reach aggregator correctly
+- ✅ Add per-node encoder state to debug UI
+- ✅ Add NTP time synchronization for accurate timestamps
 **Acceptance:**
-- Encoder delta shows incremental changes, not resets
-- Button presses visible in debug UI
-- Both node1 and node2 encoder signals distinguish properly
+- ✅ Encoder delta shows incremental changes, not resets
+- ✅ Button presses visible in debug UI
+- ✅ Both node1 and node2 encoder signals distinguish properly
+- ✅ Timestamps are synchronized across nodes
 **Test:**
-- Rotate encoder clockwise/counterclockwise; verify delta direction
-- Press button; see event in MQTT log
+- ✅ Rotate encoder clockwise/counterclockwise; verify delta direction
+- ✅ Press button; see event in MQTT log
+- Deploy firmware and verify NTP sync in serial output
 
 ## T-015 Debug UI: Modular signal plotting ✅ DONE
 **Goal:** Allow adding/removing any numeric signal from any node to charts.

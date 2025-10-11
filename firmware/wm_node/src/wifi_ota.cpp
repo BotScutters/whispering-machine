@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <ArduinoOTA.h>
+#include <time.h>
 #include "config.h"
 
 #ifndef WM_SSID
@@ -46,6 +47,24 @@ void ensure_wifi() {
   if (WiFi.status() == WL_CONNECTED) {
     Serial.printf("[WiFi] Connected, IP=%s RSSI=%d dBm\n",
       WiFi.localIP().toString().c_str(), WiFi.RSSI());
+    
+    // Sync time via NTP
+    configTime(-8 * 3600, 0, "pool.ntp.org", "time.nist.gov");  // PST timezone
+    Serial.println("[NTP] Syncing time...");
+    
+    // Wait up to 5 seconds for time sync
+    int retry = 0;
+    while (time(nullptr) < 100000 && retry < 50) {
+      delay(100);
+      retry++;
+    }
+    
+    if (time(nullptr) > 100000) {
+      time_t now = time(nullptr);
+      Serial.printf("[NTP] Time synced: %s", ctime(&now));
+    } else {
+      Serial.println("[NTP] Time sync failed, using millis() fallback");
+    }
   } else {
     Serial.printf("[WiFi] FAILED. status=%d\n", WiFi.status());
   }
@@ -58,4 +77,19 @@ void ota_begin() {
   ArduinoOTA.onError([](ota_error_t e){ Serial.printf("[OTA] Error %u\n", e); });
   ArduinoOTA.begin();
   Serial.println("[OTA] Ready");
+}
+
+uint64_t get_timestamp_ms() {
+  struct timeval tv;
+  gettimeofday(&tv, nullptr);
+  
+  // Check if we have valid NTP time (after year 2000)
+  if (tv.tv_sec > 946684800) {
+    // Return Unix timestamp in milliseconds
+    return ((uint64_t)tv.tv_sec * 1000ULL) + ((uint64_t)tv.tv_usec / 1000ULL);
+  } else {
+    // Fallback to millis() if NTP hasn't synced yet
+    // This will be inaccurate for absolute time but keeps relative timing
+    return (uint64_t)millis();
+  }
 }
