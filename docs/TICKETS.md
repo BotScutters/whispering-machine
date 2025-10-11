@@ -158,20 +158,22 @@
 - Rotate encoder clockwise/counterclockwise; verify delta direction
 - Press button; see event in MQTT log
 
-## T-015 Debug UI: Modular signal plotting
+## T-015 Debug UI: Modular signal plotting ✅ DONE
 **Goal:** Allow adding/removing any numeric signal from any node to charts.
 **Tasks:**
-- Create dynamic "Add Signal" interface for selecting node + signal path
-- Support plotting arbitrary JSON paths (e.g., `node1.audio.rms`, `node2.occupancy.raw_value`)
-- Allow multiple signals on same chart with auto-scaling
-- Add per-signal visibility toggle and color picker
-- Save chart configuration to localStorage
+- ✅ Create dynamic "Add Signal" interface for selecting node + signal path
+- ✅ Support plotting arbitrary JSON paths (e.g., `node1.audio.rms`, `node2.occupancy.raw_value`)
+- ✅ Allow multiple signals on same chart with auto-scaling
+- ✅ Add per-signal visibility toggle and color picker
+- ✅ Save chart configuration to localStorage
+- ✅ Added status tables for audio and encoder signals
 **Acceptance:**
-- Can plot any combination of signals from any nodes
-- Configuration persists across page refreshes
+- ✅ Can plot any combination of signals from any nodes
+- ✅ Configuration persists across page refreshes
+- ✅ Status tables auto-populate and update
 **Test:**
-- Add signals from multiple nodes; verify plotting
-- Refresh page; verify configuration restored
+- ✅ Add signals from multiple nodes; verify plotting
+- ✅ Refresh page; verify configuration restored
 
 ## T-016 Debug UI: Enhanced MQTT debugger
 **Goal:** Improve MQTT message inspection and filtering.
