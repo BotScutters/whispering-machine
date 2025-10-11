@@ -41,21 +41,28 @@ void encoder_begin() {
 
 void encoder_service() {
   static uint32_t last_pub = 0;
+  static int32_t last_pos = 0;
   uint32_t now = millis();
 
-  // Coalesce delta ~150ms
-  if (now - last_pub >= 150) {
+  // Publish encoder state at 5 Hz (every 200ms) for consistent updates
+  if (now - last_pub >= 200) {
     int32_t d = 0, p = 0;
     noInterrupts(); d = g_delta; g_delta = 0; p = g_pos; interrupts();
-    if (d != 0) {
-      // local feedback
+    
+    // Publish if position changed OR periodically (for debug UI validation)
+    if (d != 0 || (now - last_pub >= 1000)) {
+      // local feedback on actual changes
       if (d > 0) ring_twinkle_pixel(0, 0, 32, 0);
-      else       ring_twinkle_pixel(0, 32, 0, 0);
+      else if (d < 0) ring_twinkle_pixel(0, 32, 0, 0);
 
       StaticJsonDocument<128> j;
-      j["pos"] = p; j["delta"] = d; j["ts_ms"] = now;
+      j["pos"] = p;
+      j["delta"] = d;  // Delta since last publish (incremental, not cumulative)
+      j["ts_ms"] = now;
       char out[128]; size_t n = serializeJson(j, out, sizeof(out));
       mqtt_publish(t_enc().c_str(), out, false);
+      
+      last_pos = p;
     }
     last_pub = now;
   }
@@ -64,12 +71,16 @@ void encoder_service() {
   bool sw = digitalRead(ENCODER_PIN_SW);
   if (sw != btn_last && (now - btn_last_ms) >= BTN_DEBOUNCE_MS) {
     btn_last = sw; btn_last_ms = now;
+    
+    bool is_pressed = (sw == LOW);
     StaticJsonDocument<96> j;
-    j["pressed"] = (sw == LOW);
+    j["pressed"] = is_pressed;
+    j["event"] = is_pressed ? "press" : "release";  // Explicit event type
     j["ts_ms"] = now;
     char out[96]; size_t n = serializeJson(j, out, sizeof(out));
     mqtt_publish(t_btn().c_str(), out, false);
 
-    if (sw == LOW) ring_twinkle_pixel(1, 0, 0, 40);
+    // Visual feedback on press
+    if (is_pressed) ring_twinkle_pixel(1, 0, 0, 40);
   }
 }

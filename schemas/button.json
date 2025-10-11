@@ -1,1 +1,1 @@
-{"type":"object","properties":{"pressed":{"type":"boolean"},"ts_ms":{"type":"number"}},"required":["pressed","ts_ms"]}
+{"type":"object","properties":{"pressed":{"type":"boolean"},"event":{"type":"string","enum":["press","release"]},"ts_ms":{"type":"number"}},"required":["pressed","ts_ms"]}
