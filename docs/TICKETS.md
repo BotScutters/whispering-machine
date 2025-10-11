@@ -84,16 +84,19 @@
 **Test:**
 - Publish pause true; ensure behavior.
 
-## T-009 ESP32: Audio feature extraction - ZCR and frequency bands
+## T-009 ESP32: Audio feature extraction - ZCR and frequency bands ✅ DONE
 **Goal:** Implement ZCR and 3-band frequency analysis (currently pegged at 0).
 **Tasks:**
-- Implement zero-crossing rate calculation in I²S audio processing
-- Add 3-band IIR filters (low/mid/high) for frequency analysis
-- Optimize computation to maintain ~10 Hz publish rate
+- ✅ Implement zero-crossing rate calculation in I²S audio processing
+- ✅ Add 3-band IIR filters (low/mid/high) for frequency analysis using biquad filters
+- ✅ Optimize computation to maintain ~10 Hz publish rate
+- ✅ Added AudioFeatures struct for clean API
 **Acceptance:**
-- ZCR, low, mid, high values change with different audio inputs.
+- ✅ ZCR, low, mid, high values change with different audio inputs
+- ✅ Performance maintained at ~10 Hz
 **Test:**
-- Play pink noise / sine wave; verify all features respond appropriately.
+- Play pink noise / sine wave; verify all features respond appropriately
+- Check audio status table in debug UI for non-zero values
 
 ## T-010 DevEx: Development scripts
 **Goal:** Standardize dev commands for UnRAID environment.

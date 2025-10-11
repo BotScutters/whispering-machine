@@ -2,11 +2,12 @@
 
 **Phase 1 (Current - Debug & Calibration):**
 - ✅ Stable broker + aggregator + UI loop
-- ✅ Basic debug UI with live sensor data
-- 🔄 ESP32 audio feature extraction (ZCR + frequency bands)
-- 🔄 Modular debug UI for plotting arbitrary signals
+- ✅ Debug UI with modular signal plotting
+- ✅ ESP32 audio feature extraction (RMS, ZCR, 3-band frequency)
+- ✅ Encoder/button signal debugging with NTP time sync
+- ✅ Status tables for all sensor signals
 - 🔄 PIR raw value publishing for proximity tuning
-- 🔄 Encoder/button signal debugging and validation
+- 🔄 LED ring state publishing for validation
 
 **Phase 2 (LED & Interaction):**
 - LED ring behavior system with multiple modes

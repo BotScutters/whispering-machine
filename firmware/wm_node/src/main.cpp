@@ -75,10 +75,13 @@ void loop() {
   // Audio features @ ~10 Hz
   if (t - t_fast >= 100) {
     t_fast = t;
-    float rms = i2s_audio_rms();
+    AudioFeatures af = i2s_audio_features();
     StaticJsonDocument<160> j;
-    j["rms"] = rms;
-    j["zcr"] = 0.0; j["low"] = 0.0; j["mid"] = 0.0; j["high"] = 0.0;
+    j["rms"] = af.rms;
+    j["zcr"] = af.zcr;
+    j["low"] = af.low;
+    j["mid"] = af.mid;
+    j["high"] = af.high;
     j["ts_ms"] = get_timestamp_ms();
     char out[160]; size_t n = serializeJson(j, out, sizeof(out));
     mqtt_publish(t_features().c_str(), out, false);
