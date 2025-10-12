@@ -59,6 +59,11 @@
 - Port mapping: Host ports only for external tools
 - Development: `docker compose -f infra/docker-compose.yml up -d`
 
+### External Services
+- **Whisper**: faster-whisper on UnRAID (port 10300), managed outside this repo
+- **Integration**: This repo will build thin transcriber service to interface with Whisper API
+- **Documentation**: See `docs/WHISPER_INTEGRATION.md` for setup and API details
+
 ### Python & AsyncIO
 - Paho MQTT v2 callback signatures
 - AsyncIO patterns for MQTT clients

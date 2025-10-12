@@ -2,11 +2,11 @@
 
 ## Overview
 - **Sensors (ESP32 PlatformIO nodes):** publish MQTT topics under `party/<HOUSE_ID>/<node>/...`
-- **Broker:** Mosquitto (container) on unRAID for dev. Internal port 1883; host mapped 1884 (avoid conflicts).
-- **Aggregator (Python):** subscribes topics → validates → derives metrics → publishes unified UI state to `party/<HOUSE_ID>/ui/state` at ~5 Hz.
-- **UI (FastAPI + WS):** serves dashboard; opens WS; pushes state to touchscreen.
-- **LED Daemon (Pi target):** subscribes mood topics → drives WS2812 via level-shifted GPIO.
-- **(Optional) UnRAID workers:** receive uploaded event clips → transcribe (Whisper) → keywords → MQTT.
+- **Broker:** Mosquitto (container) on unRAID. Internal port 1883; host mapped 1884.
+- **Aggregator (Python):** subscribes topics → validates → derives metrics → publishes unified UI state.
+- **UI (FastAPI + WS):** serves debug dashboard with modular components; WebSocket fanout to browser.
+- **Whisper (External):** faster-whisper service on UnRAID (port 10300) for audio transcription (managed outside this repo).
+- **(Future) Transcriber Service:** thin wrapper that receives audio clips from ESP32, calls Whisper API, publishes transcripts to MQTT.
 
 ## Invariants
 - Topics: `party/<house>/<node>/<domain>/<signal>`

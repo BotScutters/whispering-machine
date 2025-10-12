@@ -25,9 +25,14 @@ This directory contains all the documentation needed for agent-led development o
 - **`CODING_STANDARDS.md`** - Python style, formatting, and best practices
 - **`AGENT_MEMORY.md`** - Project-specific learnings and gotchas
 - **`SENSOR_REFERENCE.md`** - Sensor signals, tuning, and technical details
+- **`TESTING.md`** - Testing procedures and validation checklists
 - **`ROADMAP.md`** - High-level project phases and milestones
 - **`CURRENT_PRIORITIES.md`** - Current development status and next steps
 - **`DEVELOPMENT_SCRIPTS.md`** - Development commands and scripts reference
+
+### Integration References
+- **`WHISPER_INTEGRATION.md`** - Audio transcription service setup and API reference
+- **`T-019_UI_REFACTOR.md`** - UI architecture and component system
 
 ### Decision Records
 - **`DECISIONS/`** - Architecture Decision Records (ADRs)
