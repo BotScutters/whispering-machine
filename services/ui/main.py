@@ -9,6 +9,7 @@ from typing import Any
 import paho.mqtt.client as mqtt
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 HOUSE_ID = os.getenv("HOUSE_ID", "houseA")
 BROKER_HOST = os.getenv("BROKER_HOST", "mosquitto")
@@ -20,6 +21,10 @@ STATE_TOPIC = f"{TOPIC_BASE}/ui/state"
 RAW_TOPIC = f"{TOPIC_BASE}/#"
 
 app = FastAPI()
+
+# Mount static files for JS modules and CSS
+app.mount("/js", StaticFiles(directory="static/js"), name="js")
+app.mount("/css", StaticFiles(directory="static/css"), name="css")
 
 ui_state: dict[str, Any] = {
     "noise": {"rms": 0.0},
@@ -124,19 +129,31 @@ def index():
 
 @app.get("/debug")
 def debug():
-    with open("static/debug-simple.html", encoding="utf-8") as f:
+    with open("static/debug.html", encoding="utf-8") as f:
         return HTMLResponse(f.read())
 
 
 @app.get("/debug-full")
 def debug_full():
-    with open("static/debug.html", encoding="utf-8") as f:
+    with open("static/debug-full.html", encoding="utf-8") as f:
+        return HTMLResponse(f.read())
+
+
+@app.get("/debug-simple")
+def debug_simple():
+    with open("static/debug-simple.html", encoding="utf-8") as f:
         return HTMLResponse(f.read())
 
 
 @app.get("/test")
 def test():
     with open("static/test.html", encoding="utf-8") as f:
+        return HTMLResponse(f.read())
+
+
+@app.get("/module-test")
+def module_test():
+    with open("static/module-test.html", encoding="utf-8") as f:
         return HTMLResponse(f.read())
 
 

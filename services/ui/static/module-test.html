@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Module Test</title>
+</head>
+<body>
+    <h1>Module Loading Test</h1>
+    <div id="output"></div>
+    <script type="module">
+        const output = document.getElementById('output');
+        
+        async function testModules() {
+            try {
+                output.innerHTML += '<p>Loading CONFIG...</p>';
+                const { CONFIG } = await import('./js/core/config.js');
+                output.innerHTML += `<p>✅ CONFIG loaded: ${Object.keys(CONFIG).length} keys</p>`;
+                
+                output.innerHTML += '<p>Loading utils...</p>';
+                const utils = await import('./js/core/utils.js');
+                output.innerHTML += `<p>✅ Utils loaded: ${Object.keys(utils).length} functions</p>`;
+                
+                output.innerHTML += '<p>Loading StateManager...</p>';
+                const { StateManager } = await import('./js/core/state-manager.js');
+                output.innerHTML += '<p>✅ StateManager loaded</p>';
+                
+                output.innerHTML += '<p>Loading MQTTClient...</p>';
+                const { MQTTClient } = await import('./js/core/mqtt-client.js');
+                output.innerHTML += '<p>✅ MQTTClient loaded</p>';
+                
+                output.innerHTML += '<p>Loading BaseComponent...</p>';
+                const { BaseComponent } = await import('./js/components/base-component.js');
+                output.innerHTML += '<p>✅ BaseComponent loaded</p>';
+                
+                output.innerHTML += '<p>Loading StatusTable...</p>';
+                const { StatusTable } = await import('./js/components/status-table.js');
+                output.innerHTML += '<p>✅ StatusTable loaded</p>';
+                
+                output.innerHTML += '<p>Loading DebugApp...</p>';
+                const { DebugApp } = await import('./js/pages/debug-app.js');
+                output.innerHTML += '<p>✅ DebugApp loaded</p>';
+                
+                output.innerHTML += '<p style="color:green;font-weight:bold">All modules loaded successfully!</p>';
+            } catch (error) {
+                output.innerHTML += `<p style="color:red">❌ Error: ${error.message}</p>`;
+                output.innerHTML += `<pre>${error.stack}</pre>`;
+            }
+        }
+        
+        testModules();
+    </script>
+</body>
+</html>
+
