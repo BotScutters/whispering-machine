@@ -25,9 +25,18 @@ alwaysApply: true
 ## ESP32 Firmware
 - **PlatformIO**: Custom Arduino framework in `firmware/wm_node/`
 - **Configuration**: DRY config with `secrets.ini` (Wi-Fi), per-node environments
-- **Hardware**: INMP441 mic, PIR sensor, rotary encoder, WS2812 LED ring
+- **Hardware**: INMP441 mic, PIR sensor (AM312), rotary encoder (EC11), WS2812 LED ring (8 LEDs)
 - **Build**: `pio run -e node1-usb -t upload` (first time), `pio run -e node1-ota -t upload` (OTA)
-- **Topics**: `audio/features`, `occupancy/state`, `input/encoder`, `input/button`, `sys/heartbeat`
+- **Topics**: `audio/features`, `occupancy/state`, `ring/state`, `input/encoder`, `input/button`, `sys/heartbeat`
+- **LED Modes**: 6 modes (OFF, IDLE_BREATHING, AUDIO_REACTIVE, RAINBOW, AURORA, OCCUPANCY_PULSE)
+
+## UI Architecture
+- **Modular Components**: 12 ES6 modules in `services/ui/static/js/`
+- **Core**: `config.js`, `state-manager.js`, `mqtt-client.js`, `utils.js`
+- **Components**: `base-component.js`, `status-table.js`, `led-ring-viz.js`, `signal-chart.js`, etc.
+- **Pattern**: Extend `BaseComponent`, subscribe to state changes, render on update
+- **Reusability**: Components designed for both debug and party tracker UIs
+- **No Frameworks**: Vanilla JavaScript with ES6 modules, Chart.js for plotting only
 
 ## Development Workflow
 - Pick a single ticket from `docs/TICKETS.md` and restate acceptance criteria

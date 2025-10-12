@@ -129,31 +129,15 @@ def index():
 
 @app.get("/debug")
 def debug():
+    """Modular debug UI with real-time sensor monitoring and signal plotting."""
     with open("static/debug.html", encoding="utf-8") as f:
-        return HTMLResponse(f.read())
-
-
-@app.get("/debug-full")
-def debug_full():
-    with open("static/debug-full.html", encoding="utf-8") as f:
         return HTMLResponse(f.read())
 
 
 @app.get("/debug-simple")
 def debug_simple():
+    """Simple debug UI without Chart.js (fallback for troubleshooting)."""
     with open("static/debug-simple.html", encoding="utf-8") as f:
-        return HTMLResponse(f.read())
-
-
-@app.get("/test")
-def test():
-    with open("static/test.html", encoding="utf-8") as f:
-        return HTMLResponse(f.read())
-
-
-@app.get("/module-test")
-def module_test():
-    with open("static/module-test.html", encoding="utf-8") as f:
         return HTMLResponse(f.read())
 
 

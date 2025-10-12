@@ -148,21 +148,15 @@ export class SignalChart extends BaseComponent {
 
         this.activeSignals.forEach((signal, key) => {
             const nodeData = this.stateManager?.get(`nodes.${signal.node}`);
-            if (!nodeData) {
-                console.log(`[SignalChart] No data for node ${signal.node}`);
-                return;
-            }
+            if (!nodeData) return;
 
             const value = getNestedValueAsNumber(nodeData, signal.path);
             if (value !== null && value !== undefined) {
                 signal.data.push({ x: now, y: value });
-                console.log(`[SignalChart] Added data point for ${key}: ${value}`);
                 
                 // Trim old data
                 const cutoff = new Date(now.getTime() - maxAge);
                 signal.data = signal.data.filter(d => d.x >= cutoff);
-            } else {
-                console.log(`[SignalChart] No value for ${key} (path: ${signal.path})`);
             }
         });
     }

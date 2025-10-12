@@ -140,20 +140,14 @@ export function setNestedValue(obj, path, value) {
     const last = parts.pop();
     let current = obj;
     
-    console.log(`[setNestedValue] path=${path}, parts=[${parts.join(', ')}], last=${last}`);
-    
     for (const part of parts) {
         if (!(part in current)) {
-            console.log(`[setNestedValue] Creating ${part} in current object`);
             current[part] = {};
         }
         current = current[part];
-        console.log(`[setNestedValue] Moved to ${part}, current is now:`, current);
     }
     
-    console.log(`[setNestedValue] Setting ${last} =`, value);
     current[last] = value;
-    console.log(`[setNestedValue] Final current:`, current);
 }
 
 /**

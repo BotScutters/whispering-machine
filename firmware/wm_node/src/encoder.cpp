@@ -49,17 +49,23 @@ void encoder_service() {
   int32_t d = 0, p = 0;
   noInterrupts(); d = g_delta; g_delta = 0; p = g_pos; interrupts();
   
-  // Publish encoder state at 5 Hz (every 200ms) for consistent updates
-  if (now - last_pub >= 200) {
-    // Publish if position changed OR periodically (for debug UI validation)
-    if (d != 0 || (now - last_pub >= 1000)) {
-      StaticJsonDocument<128> j;
-      j["pos"] = p;
-      j["delta"] = d;  // Delta since last publish (incremental, not cumulative)
-      j["ts_ms"] = get_timestamp_ms();
-      char out[128]; size_t n = serializeJson(j, out, sizeof(out));
-      mqtt_publish(t_enc().c_str(), out, false);
-    }
+  // Publish encoder state: fast when moving (5 Hz), slow when idle (1 Hz)
+  bool shouldPublish = false;
+  if (d != 0 && (now - last_pub >= 200)) {
+    // Moving: publish at 5 Hz
+    shouldPublish = true;
+  } else if (now - last_pub >= 1000) {
+    // Idle: publish at 1 Hz for debug UI
+    shouldPublish = true;
+  }
+  
+  if (shouldPublish) {
+    StaticJsonDocument<128> j;
+    j["pos"] = p;
+    j["delta"] = d;  // Delta since last publish (incremental, not cumulative)
+    j["ts_ms"] = get_timestamp_ms();
+    char out[128]; size_t n = serializeJson(j, out, sizeof(out));
+    mqtt_publish(t_enc().c_str(), out, false);
     last_pub = now;
   }
 

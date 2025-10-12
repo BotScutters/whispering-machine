@@ -9,3 +9,6 @@ build/
 .idea/
 .vscode/
 .DS_Store
+
+# Temporary documentation (agent communication, not tracked)
+temp-docs/

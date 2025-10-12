@@ -1,103 +1,146 @@
 # Current Priorities (Phase 1: Debug & Calibration)
 
-## Status: Building Debug/Calibration Infrastructure
+## Status: Debug Infrastructure Complete, LED System Ready
 
-We're currently in the debug and calibration phase, focusing on validating sensor data and building tools for tuning the system.
+**Last Updated**: October 11, 2025
+
+We've completed the core debug infrastructure and have a fully functional LED ring behavior system. Focus is now on tuning, validation, and preparing for the party tracker UI.
+
+---
 
 ## Recently Completed ✅
 
-### 1. Debug UI Improvements
-- **T-015**: ✅ Modular signal plotting
-- **Result**: Can plot any numeric signal from any node, with visibility toggles and color customization
-- **Impact**: Full flexibility for sensor calibration and validation
+### T-009: Audio Feature Extraction ✅
+- Implemented ZCR (zero-crossing rate)
+- Implemented 3-band IIR filters (low 0-300Hz, mid 300-3000Hz, high 3000Hz+)
+- Biquad filter implementation with optimized performance
+- All audio features now reporting non-zero values
 
-### 2. ESP32 Audio Features
-- **T-009**: ✅ Implemented ZCR and 3-band frequency analysis
-- **Result**: ZCR, low, mid, high bands now computed using IIR filters
-- **Impact**: Ready for mood detection and audio-reactive behaviors
+### T-013: PIR Activity & Transitions ✅
+- Added activity metric (0.0-1.0) representing motion over 10 seconds
+- Added transitions counter for motion pattern detection
+- Increased publish rate to 10 Hz for smoother tracking
+- Enables proximity-responsive behaviors
 
-### 3. Encoder/Button Signals
-- **T-014**: ✅ Fixed encoder delta calculation and button events
-- **Result**: Delta shows incremental changes, button press/release events, NTP time sync
-- **Impact**: User interaction ready, synchronized timestamps across nodes
+### T-014: Encoder/Button Debugging ✅
+- Fixed encoder delta calculation (incremental changes)
+- Added button press/release event types
+- Implemented NTP time synchronization across all nodes
+- All timestamps now synchronized
 
-## Current Issues to Address
+### T-015: Debug UI Modular Signal Plotting ✅
+- Can plot any numeric signal from any node
+- Signal visibility toggles, color customization
+- Time range controls (5s to 1h)
+- Log scale toggle
+- LocalStorage persistence
 
-### 1. PIR Sensor Enhancement (High Priority)
-- **T-013**: Publish raw PIR values for proximity detection
-- **Current Issue**: Only boolean occupancy; can't tune proximity thresholds
-- **Impact**: Need for proximity-responsive LED behaviors
+### T-012a: LED Ring Behavior System ✅
+- 5 visualization modes (Idle Breathing, Audio Reactive, Rainbow, Aurora, Occupancy Pulse)
+- Encoder button cycles modes
+- Encoder rotation adjusts animation speed
+- Ring state published at 5 Hz with full RGB per-pixel data
+- Debug UI shows live LED ring visualization
 
-### 5. LED Ring State Publishing (Medium Priority)
-- **T-017**: Publish LED ring state for validation
-- **Current Issue**: No visibility into actual LED ring state
-- **Impact**: Can't validate LED behaviors in debug UI
+### T-019: Debug UI Refactor ✅
+- Transformed from 1573-line monolith to 12 modular files
+- Component-based architecture with BaseComponent
+- Centralized state management with observer pattern
+- StatusTable component reused 4 times
+- Ready for party tracker UI code reuse
 
-### 6. Generic Node/Signal Routing (Medium Priority)
-- **T-018**: Remove hard-coded node assumptions in aggregator
-- **Current Issue**: Adding nodes requires code changes
-- **Impact**: Scalability for multi-room deployment
-
-## Recommended Next Steps
-
-1. **T-013 (PIR raw values)** - High Priority
-   - Add proximity sensing capabilities
-   - Enable better occupancy detection tuning
-   - Foundation for proximity-responsive LED behaviors
-
-2. **T-017 (LED ring state publishing)** - High Priority
-   - Visibility into actual LED ring state
-   - Validate behaviors in debug UI
-   - Required before building complex LED modes
-
-3. **T-012 (LED ring behavior system)** - Medium Priority
-   - Implement comprehensive LED modes
-   - Connect to sensor ensemble (audio + PIR + encoder)
-   - Create interactive experiences
-
-4. **T-018 (Generic node/signal routing)** - Medium Priority
-   - Remove hard-coded node assumptions
-   - Enable easier multi-node scaling
-   - Prepare for Raspberry Pi integration
-
-5. **T-002 (Mood detection)** - Medium Priority
-   - Now that audio features work, implement spike detection
-   - Enable mood-based LED behaviors
-   - Foundation for event logging
-
-6. **T-019 & T-020 (Audio transcription system)** - Future Priority
-   - Event-triggered audio clip recording on ESP32
-   - Server-side Whisper transcription
-   - Dual-mode: real-time features + transcription capability
+---
 
 ## Current System State
 
-### Working ✅
-- ✅ MQTT pub/sub infrastructure
-- ✅ ESP32 nodes with full audio features (RMS, ZCR, 3-band)
-- ✅ Debug UI with modular signal plotting
-- ✅ Status tables for audio, encoder, button, occupancy
-- ✅ MQTT message log with filtering
-- ✅ Encoder position/delta tracking
-- ✅ Button press/release events
-- ✅ NTP time synchronization across nodes
-- ✅ Per-node signal visualization
+### Fully Working ✅
+- ✅ ESP32 nodes with all sensors (audio, PIR, encoder, button, LED ring)
+- ✅ Audio features: RMS, ZCR, 3-band frequency analysis
+- ✅ PIR: occupied, activity, transitions
+- ✅ Encoder: position, delta with speed adjustment
+- ✅ Button: press/release events with mode cycling
+- ✅ LED Ring: 5 modes, encoder control, full RGB visualization
+- ✅ Debug UI: Modular signal plotting, status tables, LED simulator
+- ✅ MQTT message debugger with filtering
+- ✅ NTP time synchronization
+- ✅ Connection status indicators
 
-### Partially Working 🔄
-- Occupancy (boolean only, no raw values for proximity)
-- LED ring (local control only, no state publishing)
+### Ready for Next Phase
+- Sensor calibration and tuning (all signals visible)
+- LED behavior refinement (modes working, needs tuning)
+- Party tracker UI development (components ready to reuse)
 
-### Not Yet Implemented ❌
-- PIR raw value sensing
-- LED ring state publishing
-- LED behavior modes and mode cycling
-- Mood detection and spike analysis
-- Generic node auto-discovery
-- Persistence layer
+---
+
+## Next Priorities
+
+### Immediate (Optional Tuning)
+1. **Audio Reactive Mode Tuning**
+   - Adjust RMS scaling if too sensitive/insensitive
+   - Test with various audio levels (silence, conversation, music)
+   
+2. **PIR Activity Calibration**
+   - Validate activity metric accuracy
+   - Test proximity responsiveness
+   - Tune for LED intensity modulation
+
+3. **LED Mode Refinement**
+   - Test all modes in real-world conditions
+   - Adjust speeds, colors, intensities as needed
+   - Document preferred modes for different scenarios
+
+### Short-Term Features
+4. **T-018: Generic Node Auto-Discovery**
+   - Remove hard-coded node names
+   - Dynamic signal discovery
+   - Prepare for 3rd node and Raspberry Pi hub
+
+5. **Party Tracker UI (New Ticket)**
+   - Reuse modular components from debug UI
+   - Build simplified public-facing interface
+   - Focus on occupancy, mood, interaction tracking
+
+### Medium-Term Features
+6. **T-020: Audio Clip Recording & Transcription**
+   - Event-triggered audio snippets on ESP32
+   - Whisper transcription service
+   - MQTT publish of transcribed text
+
+7. **T-002: Mood Detection**
+   - Audio spike analysis
+   - Activity-based mood inference
+   - LED behavior driven by mood state
+
+---
+
+## Architecture Status
+
+### Infrastructure ✅
+- Docker Compose setup with MQTT broker, aggregator, UI
+- ESP32 PlatformIO firmware with OTA updates
+- FastAPI backend with WebSocket support
+- Modular JavaScript frontend architecture
+
+### Documentation ✅
+- ARCHITECTURE.md - System overview
+- SENSOR_REFERENCE.md - Detailed sensor signal documentation
+- TICKETS.md - Well-scoped work items
+- ROADMAP.md - High-level milestones
+- AGENT_MEMORY.md - Project-specific gotchas
+- T-019_UI_REFACTOR.md - UI architecture spec
+- Cursor rules - Development guidelines
+
+### Testing ✅
+- Manual testing via debug UI
+- MQTT message validation
+- Per-node sensor readouts
+- Live signal plotting and validation
+
+---
 
 ## Notes
-- Focus on debug/calibration tools before production features
-- Maintain modularity for multi-node scalability
-- Prioritize visibility into raw sensor data over polished UI
-- Build interaction patterns incrementally with validation at each step
+- Debug infrastructure is now production-ready
+- All planned Phase 1 features complete
+- Ready to move to Phase 2 (party tracker) or continue with sensor tuning
+- Modular architecture makes adding features fast and safe
 

@@ -162,11 +162,7 @@ export class StandardHandlers {
      * Handle audio features message
      */
     handleAudioFeatures(nodeId, payload) {
-        console.log(`[StandardHandlers] Audio from ${nodeId}:`, payload);
         this.stateManager.update(`nodes.${nodeId}.audio`, payload);
-        // Verify it was stored
-        const stored = this.stateManager.get(`nodes.${nodeId}.audio`);
-        console.log(`[StandardHandlers] Stored audio for ${nodeId}:`, stored);
     }
 
     /**

@@ -160,6 +160,7 @@ export class DebugApp {
         this.mqttClient.registerHandler(
             CONFIG.TOPIC_PATTERNS.ENCODER,
             (nodeId, payload, topic) => {
+                console.log('[DebugApp] Encoder message:', topic, nodeId, payload);
                 this.discoverNode(nodeId);
                 handlers.handleEncoder(nodeId, payload);
                 this.components.mqttDebugger.addMessage(topic, payload);

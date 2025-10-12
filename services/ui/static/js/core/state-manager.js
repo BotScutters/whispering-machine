@@ -60,10 +60,6 @@ export class StateManager {
         const oldValue = getNestedValue(this.state, path);
         setNestedValue(this.state, path, value);
         
-        // Debug: verify it was set
-        const newValue = getNestedValue(this.state, path);
-        console.log(`[StateManager] update(${path}):`, value, '→ stored:', newValue);
-        
         // Notify exact path subscribers
         this.notifySubscribers(path, value, oldValue);
         
