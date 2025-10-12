@@ -12,13 +12,18 @@ enum RingMode {
   MODE_OCCUPANCY_PULSE = 5
 };
 
-// Ring state for publishing
+// Ring state for publishing (NEOPIXEL_COUNT is configured in config.h, typically 8)
+#ifndef NEOPIXEL_COUNT
+#define NEOPIXEL_COUNT 8
+#endif
+
 struct RingState {
   RingMode mode;
   float brightness;        // 0.0-1.0
   float speed;            // Mode-specific parameter
   uint32_t color_primary; // RGB color for some modes
-  uint32_t pixels[24];    // Per-pixel RGB colors as 32-bit values (for visualization)
+  uint32_t pixels[NEOPIXEL_COUNT]; // Per-pixel RGB colors as 32-bit values
+  uint8_t pixel_count;    // Actual number of pixels
 };
 
 // Initialize LED ring

@@ -1226,12 +1226,13 @@
                 nodes.forEach(node => {
                     const data = this.ringState[node];
                     const pixels = data.pixels || [];
+                    const pixelCount = data.pixel_count || pixels.length || 8;
                     
                     html += '<td><svg width="120" height="120" viewBox="0 0 120 120" style="transform:rotate(-90deg)">';
                     html += '<circle cx="60" cy="60" r="50" fill="none" stroke="#333" stroke-width="1"/>';
                     
-                    for (let i = 0; i < 24; i++) {
-                        const angle = (i / 24) * 2 * Math.PI;
+                    for (let i = 0; i < pixelCount; i++) {
+                        const angle = (i / pixelCount) * 2 * Math.PI;
                         const x = 60 + Math.cos(angle) * 50;
                         const y = 60 + Math.sin(angle) * 50;
                         
@@ -1242,7 +1243,7 @@
                         const b = colorVal & 0xFF;
                         const color = (r + g + b > 0) ? `rgb(${r},${g},${b})` : '#111';
                         
-                        html += `<circle cx="${x}" cy="${y}" r="4" fill="${color}"/>`;
+                        html += `<circle cx="${x}" cy="${y}" r="5" fill="${color}"/>`;
                     }
                     html += '</svg></td>';
                 });

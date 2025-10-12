@@ -114,15 +114,16 @@ void loop() {
     t_ring = t;
     RingState rs = ring_get_state();
     
-    StaticJsonDocument<512> j;
+    StaticJsonDocument<512> j; // Sized for 8 LEDs × 32-bit RGB + overhead
     j["mode"] = rs.mode;
     j["brightness"] = rs.brightness;
     j["speed"] = rs.speed;
     j["color"] = rs.color_primary;
+    j["pixel_count"] = rs.pixel_count;
     
-    // Add per-pixel brightness array for debug visualization
+    // Add per-pixel RGB array for debug visualization
     JsonArray pixels = j.createNestedArray("pixels");
-    for (int i = 0; i < 24; i++) {
+    for (int i = 0; i < rs.pixel_count; i++) {
       pixels.add(rs.pixels[i]);
     }
     

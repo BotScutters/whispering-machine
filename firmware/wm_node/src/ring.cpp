@@ -149,9 +149,10 @@ RingState ring_get_state() {
   state.brightness = s_brightness;
   state.speed = s_speed;
   state.color_primary = s_color_primary;
+  state.pixel_count = NEOPIXEL_COUNT;
   
   // Capture current pixel states for debug visualization (full RGB)
-  for (int i = 0; i < NEOPIXEL_COUNT && i < 24; i++) {
+  for (int i = 0; i < NEOPIXEL_COUNT; i++) {
     state.pixels[i] = s_ring.getPixelColor(i);
   }
   
