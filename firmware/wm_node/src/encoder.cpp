@@ -45,25 +45,20 @@ void encoder_service() {
   static int32_t last_pos = 0;
   uint32_t now = millis();
 
+  // Capture encoder delta at function scope (needed for ring adjustment later)
+  int32_t d = 0, p = 0;
+  noInterrupts(); d = g_delta; g_delta = 0; p = g_pos; interrupts();
+  
   // Publish encoder state at 5 Hz (every 200ms) for consistent updates
   if (now - last_pub >= 200) {
-    int32_t d = 0, p = 0;
-    noInterrupts(); d = g_delta; g_delta = 0; p = g_pos; interrupts();
-    
     // Publish if position changed OR periodically (for debug UI validation)
     if (d != 0 || (now - last_pub >= 1000)) {
-      // local feedback on actual changes
-      if (d > 0) ring_twinkle_pixel(0, 0, 32, 0);
-      else if (d < 0) ring_twinkle_pixel(0, 32, 0, 0);
-
       StaticJsonDocument<128> j;
       j["pos"] = p;
       j["delta"] = d;  // Delta since last publish (incremental, not cumulative)
       j["ts_ms"] = get_timestamp_ms();
       char out[128]; size_t n = serializeJson(j, out, sizeof(out));
       mqtt_publish(t_enc().c_str(), out, false);
-      
-      last_pos = p;
     }
     last_pub = now;
   }
@@ -83,7 +78,7 @@ void encoder_service() {
 
     // Cycle LED ring mode on button press
     if (is_pressed) {
-      static int mode_idx = 1; // Start at MODE_IDLE_BREATHING
+      static int mode_idx = 0; // Start at index 0 (MODE_IDLE_BREATHING)
       const RingMode modes[] = {MODE_IDLE_BREATHING, MODE_AUDIO_REACTIVE, MODE_RAINBOW, MODE_AURORA, MODE_OCCUPANCY_PULSE};
       mode_idx = (mode_idx + 1) % 5;
       ring_set_mode(modes[mode_idx]);
