@@ -55,7 +55,7 @@ static float biquad_filter(float x, float *y1, float *y2, float *x1, float *x2,
 }
 
 AudioFeatures i2s_audio_features() {
-  int32_t buf[SAMPLES];
+  static int32_t buf[SAMPLES];  // Static to avoid stack overflow
   size_t bytes_read = 0;
   if (i2s_read(I2S_PORT, (void*)buf, sizeof(buf), &bytes_read, 10 / portTICK_PERIOD_MS) != ESP_OK) {
     return {g_rms, g_zcr, g_low, g_mid, g_high};
@@ -64,21 +64,21 @@ AudioFeatures i2s_audio_features() {
   
   int n = bytes_read / sizeof(int32_t);
   
-  // Convert samples to float and compute RMS + ZCR
-  float samples[SAMPLES];
+  // Compute RMS + ZCR directly from buffer (no float array allocation)
   double sumsq = 0.0;
   int zero_crossings = 0;
-  float prev_sign = 0;
+  int32_t prev_sample = 0;
   
   for (int i = 0; i < n; i++) {
     int32_t v = (buf[i] >> 8);            // 24-bit left-justified
-    samples[i] = (float)v / 8388608.0f;   // 2^23
-    sumsq += (double)samples[i] * (double)samples[i];
+    float f = (float)v / 8388608.0f;      // 2^23
+    sumsq += (double)f * (double)f;
     
     // Count zero crossings
-    float curr_sign = (samples[i] >= 0) ? 1.0f : -1.0f;
-    if (i > 0 && curr_sign != prev_sign) zero_crossings++;
-    prev_sign = curr_sign;
+    if (i > 0 && ((v >= 0 && prev_sample < 0) || (v < 0 && prev_sample >= 0))) {
+      zero_crossings++;
+    }
+    prev_sample = v;
   }
   
   // RMS
@@ -89,44 +89,44 @@ AudioFeatures i2s_audio_features() {
   float zcr = (float)zero_crossings / (float)n;
   g_zcr = 0.85f * g_zcr + 0.15f * zcr;
   
-  // 3-band frequency analysis using simple IIR filters
-  // Coefficients for 16kHz sample rate (approximate)
-  // Low: ~300 Hz lowpass
-  // Mid: ~300-3000 Hz bandpass
-  // High: ~3000 Hz highpass
+  // Simplified 3-band frequency estimation using decimated processing
+  // Process every 4th sample to reduce CPU load
+  double low_energy = 0, mid_energy = 0, high_energy = 0;
   
-  // Low band (2nd order Butterworth lowpass @ 300Hz)
+  // Low band (2nd order Butterworth lowpass @ 300Hz, 16kHz SR)
   float low_b0 = 0.0007f, low_b1 = 0.0013f, low_b2 = 0.0007f;
   float low_a1 = -1.9633f, low_a2 = 0.9660f;
   
-  // Mid band (approximation: highpass @ 300Hz then lowpass @ 3000Hz)
+  // Mid band (approximation)
   float mid_b0 = 0.05f, mid_b1 = 0.09f, mid_b2 = 0.05f;
   float mid_a1 = -1.5f, mid_a2 = 0.6f;
   
-  // High band (2nd order Butterworth highpass @ 3000Hz)
+  // High band (2nd order Butterworth highpass @ 3000Hz, 16kHz SR)
   float high_b0 = 0.6f, high_b1 = -1.2f, high_b2 = 0.6f;
   float high_a1 = -1.0f, high_a2 = 0.3f;
   
-  // Apply filters and compute energy in each band
-  double low_energy = 0, mid_energy = 0, high_energy = 0;
-  
-  for (int i = 0; i < n; i++) {
-    float low_out = biquad_filter(samples[i], &low_y1, &low_y2, &low_x1, &low_x2,
+  int processed = 0;
+  for (int i = 0; i < n; i += 4) {  // Process every 4th sample
+    int32_t v = (buf[i] >> 8);
+    float x = (float)v / 8388608.0f;
+    
+    float low_out = biquad_filter(x, &low_y1, &low_y2, &low_x1, &low_x2,
                                    low_b0, low_b1, low_b2, low_a1, low_a2);
-    float mid_out = biquad_filter(samples[i], &mid_y1, &mid_y2, &mid_x1, &mid_x2,
+    float mid_out = biquad_filter(x, &mid_y1, &mid_y2, &mid_x1, &mid_x2,
                                    mid_b0, mid_b1, mid_b2, mid_a1, mid_a2);
-    float high_out = biquad_filter(samples[i], &high_y1, &high_y2, &high_x1, &high_x2,
+    float high_out = biquad_filter(x, &high_y1, &high_y2, &high_x1, &high_x2,
                                     high_b0, high_b1, high_b2, high_a1, high_a2);
     
     low_energy += (double)low_out * (double)low_out;
     mid_energy += (double)mid_out * (double)mid_out;
     high_energy += (double)high_out * (double)high_out;
+    processed++;
   }
   
-  // Normalize by sample count and smooth
-  float low = sqrtf((float)(low_energy / n));
-  float mid = sqrtf((float)(mid_energy / n));
-  float high = sqrtf((float)(high_energy / n));
+  // Normalize and smooth
+  float low = (processed > 0) ? sqrtf((float)(low_energy / processed)) : 0.0f;
+  float mid = (processed > 0) ? sqrtf((float)(mid_energy / processed)) : 0.0f;
+  float high = (processed > 0) ? sqrtf((float)(high_energy / processed)) : 0.0f;
   
   g_low = 0.85f * g_low + 0.15f * low;
   g_mid = 0.85f * g_mid + 0.15f * mid;
