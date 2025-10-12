@@ -87,14 +87,16 @@ void loop() {
     mqtt_publish(t_features().c_str(), out, false);
   }
 
-  // PIR every 1s
-  if (t - t_slow >= 1000) {
+  // PIR every 100ms (10 Hz for smoother activity tracking)
+  if (t - t_slow >= 100) {
     t_slow = t;
-    bool occ = pir_occupied();
-    StaticJsonDocument<96> j;
-    j["occupied"] = occ;
+    PIRStatus pir = pir_status();
+    StaticJsonDocument<128> j;
+    j["occupied"] = pir.occupied;
+    j["transitions"] = pir.transitions;
+    j["activity"] = pir.activity;
     j["ts_ms"] = get_timestamp_ms();
-    char out[96]; size_t n = serializeJson(j, out, sizeof(out));
+    char out[128]; size_t n = serializeJson(j, out, sizeof(out));
     mqtt_publish(t_pir().c_str(), out, false);
   }
 }

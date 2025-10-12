@@ -28,6 +28,8 @@ class AudioFeatures(BaseModel):
 
 class Occupancy(BaseModel):
     occupied: bool
+    transitions: int = 0
+    activity: float = 0.0
     ts_ms: int
 
 
@@ -69,7 +71,12 @@ def on_message(client, userdata, msg):
         try:
             oc = Occupancy(**data)
             node_id = msg.topic.split("/")[2]
-            state["rooms"][node_id] = {"occupied": bool(oc.occupied), "ts_ms": oc.ts_ms}
+            state["rooms"][node_id] = {
+                "occupied": bool(oc.occupied),
+                "transitions": oc.transitions,
+                "activity": oc.activity,
+                "ts_ms": oc.ts_ms
+            }
         except Exception:
             pass
 

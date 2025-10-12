@@ -1,1 +1,1 @@
-{"type":"object","properties":{"occupied":{"type":"boolean"},"ts_ms":{"type":"number"}},"required":["occupied","ts_ms"]}
+{"type":"object","properties":{"occupied":{"type":"boolean"},"transitions":{"type":"number"},"activity":{"type":"number"},"ts_ms":{"type":"number"}},"required":["occupied","ts_ms"]}

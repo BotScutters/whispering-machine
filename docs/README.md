@@ -24,7 +24,9 @@ This directory contains all the documentation needed for agent-led development o
 ### Standards & Guidelines
 - **`CODING_STANDARDS.md`** - Python style, formatting, and best practices
 - **`AGENT_MEMORY.md`** - Project-specific learnings and gotchas
+- **`SENSOR_REFERENCE.md`** - Sensor signals, tuning, and technical details
 - **`ROADMAP.md`** - High-level project phases and milestones
+- **`CURRENT_PRIORITIES.md`** - Current development status and next steps
 - **`DEVELOPMENT_SCRIPTS.md`** - Development commands and scripts reference
 
 ### Decision Records

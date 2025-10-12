@@ -135,16 +135,27 @@
 - Rotate encoder, press button; verify mode changes in debug UI
 - Generate audio/motion; verify ring responds appropriately
 
-## T-013 ESP32: PIR raw value publishing
+## T-013 ESP32: PIR raw value publishing ✅ DONE
 **Goal:** Publish raw PIR sensor values for calibration and proximity detection.
+**Implementation:** Since AM312 is digital-only, added derived metrics:
+- **activity**: Float 0.0-1.0 representing motion percentage over last 10 seconds
+- **transitions**: Integer count of state changes in last second
+- Publish rate increased to 10 Hz for smoother tracking
 **Tasks:**
-- Add analog PIR value reading (if supported by AM312)
-- Publish raw PIR values in occupancy message: `{"occupied": bool, "raw_value": int, "ts_ms": int}`
-- Add hysteresis and threshold configuration for occupancy determination
+- ✅ Enhanced PIR firmware with activity tracking (100-sample rolling history)
+- ✅ Added transitions counter for motion pattern detection
+- ✅ Updated occupancy schema with activity and transitions fields
+- ✅ Updated aggregator to handle new fields
+- ✅ Updated debug UI with occupancy status table showing all metrics
+- ✅ Added tooltips explaining each metric
+- ✅ Updated SENSOR_REFERENCE.md with detailed signal documentation
 **Acceptance:**
-- Debug UI shows raw PIR values; can tune thresholds for proximity detection.
+- ✅ Debug UI shows activity and transitions alongside occupied state
+- ✅ User can plot occupancy.activity and occupancy.transitions on charts
+- ✅ Values help inform motion pattern understanding
 **Test:**
-- Approach sensor at varying distances; observe raw value changes
+- ✅ Approach sensor; observe activity rise from 0.0 to 1.0
+- ✅ Wave hand rapidly; observe transitions spike
 
 ## T-014 ESP32: Encoder/button signal debugging ✅ DONE
 **Goal:** Fix encoder signal inconsistencies and improve button tracking.
@@ -218,6 +229,45 @@
 - All node signals automatically routed to UI
 **Test:**
 - Add new node; verify auto-discovery and routing
+
+## T-019 ESP32: Event-triggered audio clip recording
+**Goal:** Record and upload short audio clips for transcription.
+**Tasks:**
+- Implement circular buffer for continuous audio capture (5-10 seconds)
+- Add event triggers: RMS spike, button press, high ZCR (speech-like)
+- Save triggered clips to SPIFFS or upload directly via HTTP POST
+- Add clip metadata: trigger type, timestamp, node ID, pre/post-trigger duration
+- Implement throttling to avoid overwhelming server (max 1 clip per 30s)
+- Add configuration via MQTT: enable/disable recording, trigger thresholds
+**Acceptance:**
+- Button press captures 2s pre-trigger + 3s post-trigger audio
+- RMS spike captures audio clip with metadata
+- Clips uploaded to configured HTTP endpoint
+- Throttling prevents excessive uploads
+**Test:**
+- Press button; verify clip captured and uploaded
+- Generate loud sound; verify automatic clip capture
+- Check throttling with rapid events
+
+## T-020 Server: Audio transcription service
+**Goal:** Receive audio clips and transcribe using Whisper.
+**Tasks:**
+- Create FastAPI service accepting WAV file uploads
+- Implement Whisper transcription (whisper.cpp or faster-whisper)
+- Publish transcribed text to MQTT: `party/<house>/<node>/audio/transcript`
+- Add transcript metadata: confidence, language, duration
+- Implement queue system for handling multiple simultaneous uploads
+- Add error handling and fallback for transcription failures
+- Optional: Speaker diarization for multi-person conversations
+**Acceptance:**
+- Service receives WAV files via HTTP POST
+- Transcribes audio and publishes text to MQTT within 2-5 seconds
+- Handles queue of multiple clips without blocking
+- Error cases logged and reported
+**Test:**
+- Upload test audio clip; verify transcription published
+- Upload multiple clips rapidly; verify queue handling
+- Test with speech, music, noise; verify appropriate handling
 
 ---
 (Keep adding more tickets as scope increases.)
