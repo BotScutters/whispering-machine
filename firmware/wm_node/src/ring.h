@@ -18,7 +18,7 @@ struct RingState {
   float brightness;        // 0.0-1.0
   float speed;            // Mode-specific parameter
   uint32_t color_primary; // RGB color for some modes
-  uint8_t pixels[24];     // Per-pixel brightness 0-255 (for visualization)
+  uint32_t pixels[24];    // Per-pixel RGB colors as 32-bit values (for visualization)
 };
 
 // Initialize LED ring

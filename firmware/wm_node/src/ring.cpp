@@ -61,17 +61,25 @@ static void mode_idle_breathing() {
 }
 
 static void mode_audio_reactive(float audio_rms) {
-  // React to audio RMS with brightness
-  float intensity = constrain(audio_rms * 10000.0f, 0.0f, 1.0f); // Scale RMS
-  uint8_t val = (uint8_t)(intensity * s_brightness * 255);
+  // React to audio RMS with brightness and color
+  // RMS is typically 0.0001-0.01 range, scale up significantly
+  float intensity = constrain(audio_rms * 50000.0f, 0.0f, 1.0f); // Aggressive scaling
   
   // Color shifts with intensity: blue (quiet) -> cyan -> green -> yellow -> red (loud)
   uint32_t color;
-  if (intensity < 0.2f) color = hsv_to_rgb(240, 1.0, intensity * 5); // Blue
-  else if (intensity < 0.4f) color = hsv_to_rgb(180, 1.0, 1.0); // Cyan
-  else if (intensity < 0.6f) color = hsv_to_rgb(120, 1.0, 1.0); // Green
-  else if (intensity < 0.8f) color = hsv_to_rgb(60, 1.0, 1.0);  // Yellow
-  else color = hsv_to_rgb(0, 1.0, 1.0); // Red
+  float brightness_val = intensity * s_brightness;
+  
+  if (intensity < 0.2f) {
+    color = hsv_to_rgb(240, 1.0, brightness_val); // Blue
+  } else if (intensity < 0.4f) {
+    color = hsv_to_rgb(180, 1.0, brightness_val); // Cyan
+  } else if (intensity < 0.6f) {
+    color = hsv_to_rgb(120, 1.0, brightness_val); // Green
+  } else if (intensity < 0.8f) {
+    color = hsv_to_rgb(60, 1.0, brightness_val);  // Yellow
+  } else {
+    color = hsv_to_rgb(0, 1.0, brightness_val); // Red
+  }
   
   for (int i = 0; i < NEOPIXEL_COUNT; i++) {
     s_ring.setPixelColor(i, color);
@@ -142,11 +150,9 @@ RingState ring_get_state() {
   state.speed = s_speed;
   state.color_primary = s_color_primary;
   
-  // Capture current pixel states for debug visualization
+  // Capture current pixel states for debug visualization (full RGB)
   for (int i = 0; i < NEOPIXEL_COUNT && i < 24; i++) {
-    uint32_t color = s_ring.getPixelColor(i);
-    // Use red channel as brightness approximation
-    state.pixels[i] = (color >> 16) & 0xFF;
+    state.pixels[i] = s_ring.getPixelColor(i);
   }
   
   return state;

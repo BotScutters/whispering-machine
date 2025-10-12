@@ -1197,60 +1197,83 @@
                 if (!container) return;
                 
                 const nodeId = ringData.node || 'unknown';
-                const mode = ringData.mode !== undefined ? ringData.mode : 1;
-                const brightness = ringData.brightness !== undefined ? ringData.brightness : 0.3;
-                const speed = ringData.speed !== undefined ? ringData.speed : 1.0;
-                const pixels = ringData.pixels || [];
+                
+                // Store ring data per node
+                if (!this.ringState) this.ringState = {};
+                this.ringState[nodeId] = ringData;
+                
+                // Get all nodes sorted
+                const nodes = Object.keys(this.ringState).sort();
+                if (nodes.length === 0) {
+                    container.innerHTML = '<p style="color:#888">No ring data yet...</p>';
+                    return;
+                }
                 
                 const modeNames = {
-                    0: 'OFF',
-                    1: 'IDLE_BREATHING',
-                    2: 'AUDIO_REACTIVE',
-                    3: 'RAINBOW',
-                    4: 'AURORA',
-                    5: 'OCCUPANCY_PULSE'
+                    0: 'OFF', 1: 'IDLE_BREATHING', 2: 'AUDIO_REACTIVE',
+                    3: 'RAINBOW', 4: 'AURORA', 5: 'OCCUPANCY_PULSE'
                 };
                 
-                // Build or update ring visualization
-                let nodeContainer = container.querySelector(`[data-node="${nodeId}"]`);
-                if (!nodeContainer) {
-                    nodeContainer = document.createElement('div');
-                    nodeContainer.setAttribute('data-node', nodeId);
-                    nodeContainer.style.marginBottom = '2rem';
-                    container.appendChild(nodeContainer);
-                }
+                // Build table with columns for each node
+                let html = '<table class="status-table"><thead><tr><th>Metric</th>';
+                nodes.forEach(node => {
+                    html += `<th>${node}</th>`;
+                });
+                html += '</tr></thead><tbody>';
                 
-                let html = `<h3 style="color:#00ff88;margin-bottom:1rem">${nodeId}</h3>`;
-                html += `<div style="display:flex;gap:2rem;align-items:center">`;
-                
-                // LED ring visualization (circular)
-                html += `<svg width="200" height="200" viewBox="0 0 200 200" style="transform:rotate(-90deg)">`;
-                html += `<circle cx="100" cy="100" r="80" fill="none" stroke="#333" stroke-width="2"/>`;
-                
-                for (let i = 0; i < 24; i++) {
-                    const angle = (i / 24) * 2 * Math.PI;
-                    const x = 100 + Math.cos(angle) * 80;
-                    const y = 100 + Math.sin(angle) * 80;
-                    const pixelBrightness = pixels[i] !== undefined ? pixels[i] : 0;
-                    const color = pixelBrightness > 0 ? `rgb(${pixelBrightness}, ${pixelBrightness/2}, ${pixelBrightness/4})` : '#222';
-                    const glow = pixelBrightness > 50 ? `drop-shadow(0 0 ${pixelBrightness/25}px ${color})` : 'none';
+                // LED Ring visualization row
+                html += '<tr><td class="signal-name">Ring</td>';
+                nodes.forEach(node => {
+                    const data = this.ringState[node];
+                    const pixels = data.pixels || [];
                     
-                    html += `<circle cx="${x}" cy="${y}" r="6" fill="${color}" filter="url(#glow${i})" style="filter:${glow}"/>`;
-                }
-                html += `</svg>`;
+                    html += '<td><svg width="120" height="120" viewBox="0 0 120 120" style="transform:rotate(-90deg)">';
+                    html += '<circle cx="60" cy="60" r="50" fill="none" stroke="#333" stroke-width="1"/>';
+                    
+                    for (let i = 0; i < 24; i++) {
+                        const angle = (i / 24) * 2 * Math.PI;
+                        const x = 60 + Math.cos(angle) * 50;
+                        const y = 60 + Math.sin(angle) * 50;
+                        
+                        // Decode RGB from 32-bit color value
+                        const colorVal = pixels[i] !== undefined ? pixels[i] : 0;
+                        const r = (colorVal >> 16) & 0xFF;
+                        const g = (colorVal >> 8) & 0xFF;
+                        const b = colorVal & 0xFF;
+                        const color = (r + g + b > 0) ? `rgb(${r},${g},${b})` : '#111';
+                        
+                        html += `<circle cx="${x}" cy="${y}" r="4" fill="${color}"/>`;
+                    }
+                    html += '</svg></td>';
+                });
+                html += '</tr>';
                 
-                // Status panel
-                html += `<div style="flex:1">`;
-                html += `<table class="status-table"><tbody>`;
-                html += `<tr><td class="signal-name">Mode</td><td>${modeNames[mode] || mode}</td></tr>`;
-                html += `<tr><td class="signal-name">Brightness</td><td>${(brightness * 100).toFixed(0)}%</td></tr>`;
-                html += `<tr><td class="signal-name">Speed</td><td>${speed.toFixed(2)}x</td></tr>`;
-                html += `<tr><td class="signal-name">Pixels</td><td>${pixels.length} active</td></tr>`;
-                html += `</tbody></table>`;
-                html += `</div>`;
+                // Mode row
+                html += '<tr><td class="signal-name">Mode</td>';
+                nodes.forEach(node => {
+                    const mode = this.ringState[node].mode || 0;
+                    html += `<td>${modeNames[mode] || mode}</td>`;
+                });
+                html += '</tr>';
                 
-                html += `</div>`;
-                nodeContainer.innerHTML = html;
+                // Brightness row
+                html += '<tr><td class="signal-name">Brightness</td>';
+                nodes.forEach(node => {
+                    const brightness = this.ringState[node].brightness || 0;
+                    html += `<td>${(brightness * 100).toFixed(0)}%</td>`;
+                });
+                html += '</tr>';
+                
+                // Speed row
+                html += '<tr><td class="signal-name">Speed</td>';
+                nodes.forEach(node => {
+                    const speed = this.ringState[node].speed || 1.0;
+                    html += `<td>${speed.toFixed(2)}x</td>`;
+                });
+                html += '</tr>';
+                
+                html += '</tbody></table>';
+                container.innerHTML = html;
             }
 
 
