@@ -34,7 +34,8 @@ void setup() {
     WM_NODE_ID, WM_HOUSE_ID, WM_GIT_SHA, WM_BUILD_UTC);
 
   ring_begin();
-  ring_set(true, 0.05f); delay(150); ring_set(false, 0);
+  ring_set_mode(MODE_IDLE_BREATHING); // Start in breathing mode
+  ring_set(true, 0.3f); // Set default brightness
 
   pir_begin();
   i2s_audio_begin();
@@ -45,8 +46,8 @@ void setup() {
   mqtt_begin(on_mqtt);
   ensure_mqtt();
 
-  Serial.printf("[BOOT] Topics:\n  %s\n  %s\n  %s\n  %s\n  %s\n",
-    t_features().c_str(), t_pir().c_str(), t_ring_cmd().c_str(),
+  Serial.printf("[BOOT] Topics:\n  %s\n  %s\n  %s\n  %s\n  %s\n  %s\n",
+    t_features().c_str(), t_pir().c_str(), t_ring_cmd().c_str(), t_ring_state().c_str(),
     t_enc().c_str(), t_btn().c_str());
 }
 
@@ -57,25 +58,25 @@ void loop() {
   ArduinoOTA.handle();
   encoder_service();
 
-  static uint32_t t_fast=0, t_slow=0, hb_ms=0;
+  static uint32_t t_fast=0, t_slow=0, t_ring=0, hb_ms=0;
+  static float last_rms = 0.0f, last_activity = 0.0f;
   uint32_t t = millis();
 
-  // Heartbeat every 5s (twinkle)
+  // Heartbeat every 5s
   if (t - hb_ms >= 5000) {
     hb_ms = t;
     StaticJsonDocument<96> j;
     j["ts_ms"] = get_timestamp_ms();
     char out[96]; size_t n = serializeJson(j, out, sizeof(out));
     mqtt_publish(t_hb().c_str(), out, false);
-
-    int ix = (t / 5000) % NEOPIXEL_COUNT;
-    ring_twinkle_pixel(ix, 120, 20, 20);
   }
 
   // Audio features @ ~10 Hz
   if (t - t_fast >= 100) {
     t_fast = t;
     AudioFeatures af = i2s_audio_features();
+    last_rms = af.rms; // Cache for ring update
+    
     StaticJsonDocument<160> j;
     j["rms"] = af.rms;
     j["zcr"] = af.zcr;
@@ -91,6 +92,8 @@ void loop() {
   if (t - t_slow >= 100) {
     t_slow = t;
     PIRStatus pir = pir_status();
+    last_activity = pir.activity; // Cache for ring update
+    
     StaticJsonDocument<128> j;
     j["occupied"] = pir.occupied;
     j["transitions"] = pir.transitions;
@@ -98,5 +101,33 @@ void loop() {
     j["ts_ms"] = get_timestamp_ms();
     char out[128]; size_t n = serializeJson(j, out, sizeof(out));
     mqtt_publish(t_pir().c_str(), out, false);
+  }
+
+  // LED ring update @ ~50 Hz + publish state @ 5 Hz
+  static uint32_t ring_update_ms = 0;
+  if (t - ring_update_ms >= 20) { // 50 Hz update
+    ring_update_ms = t;
+    ring_update(last_rms, last_activity);
+  }
+
+  if (t - t_ring >= 200) { // 5 Hz publish
+    t_ring = t;
+    RingState rs = ring_get_state();
+    
+    StaticJsonDocument<512> j;
+    j["mode"] = rs.mode;
+    j["brightness"] = rs.brightness;
+    j["speed"] = rs.speed;
+    j["color"] = rs.color_primary;
+    
+    // Add per-pixel brightness array for debug visualization
+    JsonArray pixels = j.createNestedArray("pixels");
+    for (int i = 0; i < 24; i++) {
+      pixels.add(rs.pixels[i]);
+    }
+    
+    j["ts_ms"] = get_timestamp_ms();
+    char out[512]; size_t n = serializeJson(j, out, sizeof(out));
+    mqtt_publish(t_ring_state().c_str(), out, false);
   }
 }

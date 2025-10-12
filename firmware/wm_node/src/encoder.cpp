@@ -81,7 +81,17 @@ void encoder_service() {
     char out[96]; size_t n = serializeJson(j, out, sizeof(out));
     mqtt_publish(t_btn().c_str(), out, false);
 
-    // Visual feedback on press
-    if (is_pressed) ring_twinkle_pixel(1, 0, 0, 40);
+    // Cycle LED ring mode on button press
+    if (is_pressed) {
+      static int mode_idx = 1; // Start at MODE_IDLE_BREATHING
+      const RingMode modes[] = {MODE_IDLE_BREATHING, MODE_AUDIO_REACTIVE, MODE_RAINBOW, MODE_AURORA, MODE_OCCUPANCY_PULSE};
+      mode_idx = (mode_idx + 1) % 5;
+      ring_set_mode(modes[mode_idx]);
+    }
+  }
+  
+  // Encoder rotation adjusts LED ring speed parameter
+  if (d != 0) {
+    ring_adjust_param(d);
   }
 }

@@ -1,0 +1,2 @@
+{"type":"object","properties":{"mode":{"type":"number","description":"RingMode enum: 0=OFF, 1=IDLE_BREATHING, 2=AUDIO_REACTIVE, 3=RAINBOW, 4=AURORA, 5=OCCUPANCY_PULSE"},"brightness":{"type":"number"},"speed":{"type":"number"},"color":{"type":"number","description":"Primary RGB color as 32-bit integer"},"pixels":{"type":"array","items":{"type":"number"},"minItems":24,"maxItems":24,"description":"Per-pixel brightness 0-255 for debug visualization"},"ts_ms":{"type":"number"}},"required":["mode","brightness","speed","ts_ms"]}
+
