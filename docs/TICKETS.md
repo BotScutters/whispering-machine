@@ -269,5 +269,28 @@
 - Upload multiple clips rapidly; verify queue handling
 - Test with speech, music, noise; verify appropriate handling
 
+## T-019 Debug UI: Refactor to Modular Architecture
+**Goal:** Refactor debug UI from monolithic 1500+ line file to clean, modular, reusable components.
+**Priority:** MEDIUM (not blocking features, but improves maintainability)
+**Tasks:**
+- **Phase 1**: Extract core utilities (config, state-manager, mqtt-client, utils)
+- **Phase 2**: Extract UI components (base-component, status-table, led-ring-viz, signal-chart, etc.)
+- **Phase 3**: Create page orchestrator (debug-app.js)
+- **Phase 4**: Refactor CSS into modular files
+- **Phase 5**: Add future-proofing (node type detection, dynamic signal discovery)
+**Key Principles:**
+- Component-based architecture with base class
+- Centralized state management with observer pattern
+- Configuration-driven rendering (reduce code duplication)
+- Reusable components for party tracker UI
+- Consistent patterns across all status tables (unify Encoder/Button with others)
+**Acceptance:**
+- Debug UI looks and behaves identically to current version
+- No single file > 300 lines
+- Can add new signal panel with < 50 lines of code
+- Can add new node type with config change only
+- All components extend BaseComponent or use clear interface
+**Details:** See `docs/T-019_UI_REFACTOR.md` for complete architecture spec
+
 ---
 (Keep adding more tickets as scope increases.)
