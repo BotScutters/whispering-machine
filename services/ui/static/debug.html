@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Whispering Machine - Debug UI (Refactored)</title>
+    <title>Whispering Machine - Debug</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <style>
@@ -27,11 +27,14 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .header h1 {
             color: #00ff88;
-            margin-bottom: 0.5rem;
+            margin: 0;
         }
 
         .header h1 small {
@@ -42,7 +45,7 @@
 
         .status-bar {
             display: flex;
-            gap: 2rem;
+            gap: 1rem;
             align-items: center;
             font-size: 0.9rem;
         }
@@ -330,7 +333,7 @@
 
     <!-- Header -->
     <div class="header">
-        <h1>🎵 Whispering Machine <small>Debug UI (Modular)</small></h1>
+        <h1>🎵 Whispering Machine <small>Debug</small></h1>
         <div class="status-bar">
             <div id="connectionStatus"></div>
         </div>
@@ -389,8 +392,7 @@
         <!-- Encoder & Button Status -->
         <div class="panel">
             <h2>🎛️ Encoder & Button Status</h2>
-            <div id="encoderStatus"></div>
-            <div id="buttonStatus" style="margin-top: 1rem;"></div>
+            <div id="encoderButtonStatus"></div>
         </div>
 
         <!-- MQTT Debugger -->

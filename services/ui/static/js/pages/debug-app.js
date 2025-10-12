@@ -77,31 +77,25 @@ export class DebugApp {
         });
         this.components.occupancyTable.init();
 
-        // Encoder Status Table
-        this.components.encoderTable = new StatusTable('encoderStatus', this.stateManager, {
-            signals: CONFIG.SIGNALS.ENCODER,
-            tooltips: CONFIG.TOOLTIPS.encoder,
-            formatters: {
-                pos: (v) => v,
-                delta: (v) => v > 0 ? `+${v}` : v
+        // Encoder & Button Status Table (unified)
+        this.components.encoderButtonTable = new StatusTable('encoderButtonStatus', this.stateManager, {
+            signals: ['encoder.pos', 'encoder.delta', 'button.pressed', 'button.event'],
+            tooltips: {
+                'encoder.pos': CONFIG.TOOLTIPS.encoder.pos,
+                'encoder.delta': CONFIG.TOOLTIPS.encoder.delta,
+                'button.pressed': CONFIG.TOOLTIPS.button.pressed,
+                'button.event': CONFIG.TOOLTIPS.button.event
             },
-            groupBy: 'node', // Show nodes as rows
-            statePath: 'nodes.*.encoder'
-        });
-        this.components.encoderTable.init();
-
-        // Button Status Table
-        this.components.buttonTable = new StatusTable('buttonStatus', this.stateManager, {
-            signals: CONFIG.SIGNALS.BUTTON,
-            tooltips: CONFIG.TOOLTIPS.button,
             formatters: {
-                pressed: (v) => v ? '🔴 PRESSED' : '⚪ RELEASED',
-                event: (v) => v || '--'
+                'encoder.pos': (v) => v,
+                'encoder.delta': (v) => v > 0 ? `+${v}` : v,
+                'button.pressed': (v) => v ? '🔴 PRESSED' : '⚪ RELEASED',
+                'button.event': (v) => v || '--'
             },
-            groupBy: 'node',
-            statePath: 'nodes.*.button'
+            statePath: 'nodes.*',
+            multiDomain: true // Special flag for cross-domain signals
         });
-        this.components.buttonTable.init();
+        this.components.encoderButtonTable.init();
 
         // LED Ring Visualizer
         this.components.ledRingViz = new LEDRingViz('ledRingContainer', this.stateManager);

@@ -135,7 +135,7 @@ export class MQTTDebugger extends BaseComponent {
      */
     formatPayload(payload) {
         try {
-            return this.escapeHtml(JSON.stringify(payload, null, 2));
+            return this.escapeHtml(JSON.stringify(payload)); // Compact, no pretty-print
         } catch (error) {
             return this.escapeHtml(String(payload));
         }

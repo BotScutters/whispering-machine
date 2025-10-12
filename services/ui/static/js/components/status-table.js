@@ -26,9 +26,10 @@ export class StatusTable extends BaseComponent {
             formatters: config.formatters || {},
             nodeColumn: config.nodeColumn !== false,
             groupBy: config.groupBy || 'signal',
-            statePath: config.statePath || 'nodes'
+            statePath: config.statePath || 'nodes',
+            multiDomain: config.multiDomain || false // Cross-domain signals (e.g., encoder.pos, button.pressed)
         };
-        this.data = {}; // nodeId -> signal data
+        this.data = {}; // nodeId -> all node data
         this.lastStructure = null; // For detecting structural changes
     }
 
@@ -116,7 +117,14 @@ export class StatusTable extends BaseComponent {
             nodes.forEach(node => {
                 const cell = this.$(`td[data-node="${node}"][data-signal="${signal}"]`);
                 if (cell) {
-                    const value = this.data[node]?.[signal];
+                    let value;
+                    if (this.config.multiDomain && signal.includes('.')) {
+                        // Cross-domain: signal is like 'encoder.pos'
+                        const [domain, field] = signal.split('.');
+                        value = this.data[node]?.[domain]?.[field];
+                    } else {
+                        value = this.data[node]?.[signal];
+                    }
                     cell.textContent = this.formatValue(signal, value);
                 }
             });

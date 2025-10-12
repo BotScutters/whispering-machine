@@ -32,15 +32,13 @@ export class ConnectionStatus extends BaseComponent {
         const mqttStatus = this.mqttConnected ? 'connected' : 'disconnected';
 
         const html = `
-            <div class="connection-indicators">
-                <div class="indicator ${wsStatus}" title="WebSocket ${wsStatus}">
-                    <span class="indicator-label">WS</span>
-                    <span class="indicator-dot"></span>
-                </div>
-                <div class="indicator ${mqttStatus}" title="MQTT ${mqttStatus}">
-                    <span class="indicator-label">MQTT</span>
-                    <span class="indicator-dot"></span>
-                </div>
+            <div class="indicator ${wsStatus}" title="WebSocket ${wsStatus}">
+                <span class="indicator-label">WS</span>
+                <span class="indicator-dot"></span>
+            </div>
+            <div class="indicator ${mqttStatus}" title="MQTT ${mqttStatus}">
+                <span class="indicator-label">MQTT</span>
+                <span class="indicator-dot"></span>
             </div>
         `;
 

@@ -204,10 +204,20 @@ export class SignalChart extends BaseComponent {
     }
 
     /**
-     * Get next color from palette
+     * Get next color from palette (avoid recently used colors)
      * @returns {string} Color
      */
     getNextColor() {
+        const usedColors = Array.from(this.activeSignals.values()).map(s => s.color);
+        
+        // Find first unused color
+        for (const color of CONFIG.CHART.COLOR_PALETTE) {
+            if (!usedColors.includes(color)) {
+                return color;
+            }
+        }
+        
+        // If all colors used, pick least recently used
         const color = CONFIG.CHART.COLOR_PALETTE[this.colorIndex % CONFIG.CHART.COLOR_PALETTE.length];
         this.colorIndex++;
         return color;
