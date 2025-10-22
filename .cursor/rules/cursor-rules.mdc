@@ -6,9 +6,10 @@ alwaysApply: true
 # Cursor Rules for Whispering Machine
 
 ## Pre-Development Checklist
-- Always read `docs/ARCHITECTURE.md`, `docs/TICKETS.md`, and `docs/AGENT_MEMORY.md` before proposing changes
+- Always read `docs/ARCHITECTURE.md`, `docs/TICKETS.md`, `docs/AGENT_MEMORY.md`, and `docs/PI_HUB_DEPLOYMENT.md` before proposing changes
 - Check existing code patterns in `services/`, `firmware/` before implementing
 - Review MQTT schemas in `schemas/` directory for payload validation
+- **CRITICAL**: All services now run on Raspberry Pi 5, not unRAID (see PI_HUB_DEPLOYMENT.md)
 
 ## Code Standards
 - **Python**: 3.10, Google style, line length 88, use type hints + docstrings
@@ -17,8 +18,12 @@ alwaysApply: true
 - **Logging**: Use structured logs to stdout, include context and timestamps
 
 ## Architecture Constraints
-- **Privacy**: Do not stream raw audio; remote nodes publish features only
-- **Networking**: Use service DNS + port 1883 inside compose; host port mappings are for LAN tools only
+- **Deployment**: All services run on Raspberry Pi 5 hub (MQTT, Aggregator, UI, Audio Bridge)
+- **Privacy**: ESP32 nodes publish features only; Pi hub captures short audio clips for transcription
+- **Networking**: 
+  - ESP32 nodes connect to Pi MQTT broker at `192.168.8.x:1883`
+  - Pi uses Tailscale to reach unRAID faster-whisper service
+  - Use service DNS + port 1883 inside compose; host port mappings for LAN access
 - **MQTT Topics**: Follow `party/<house>/<node>/<domain>/<signal>` pattern
 - **Message Format**: Small JSON with stable keys and unix `ts_ms` timestamp
 

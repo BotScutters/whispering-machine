@@ -1,12 +1,31 @@
 # Whispering Machine – Architecture
 
 ## Overview
-- **Sensors (ESP32 PlatformIO nodes):** publish MQTT topics under `party/<HOUSE_ID>/<node>/...`
-- **Broker:** Mosquitto (container) on unRAID. Internal port 1883; host mapped 1884.
-- **Aggregator (Python):** subscribes topics → validates → derives metrics → publishes unified UI state.
-- **UI (FastAPI + WS):** serves debug dashboard with modular components; WebSocket fanout to browser.
-- **Whisper (External):** faster-whisper service on UnRAID (port 10300) for audio transcription (managed outside this repo).
-- **(Future) Transcriber Service:** thin wrapper that receives audio clips from ESP32, calls Whisper API, publishes transcripts to MQTT.
+
+### Deployment Architecture (MVP)
+- **Raspberry Pi 5 Hub:** Central controller running all services locally
+  - **Mosquitto:** MQTT broker (port 1883 internal, 1884 host)
+  - **Aggregator:** Subscribes to all nodes, computes metrics, publishes UI state
+  - **UI:** FastAPI + WebSocket, serves party tracker on 7" touchscreen
+  - **Audio Bridge:** Captures from INMP441 mic, sends to Whisper, publishes transcripts
+- **ESP32 Nodes (x2):** Remote sensors publishing to Pi's MQTT broker
+  - Audio features, PIR, encoder, button, LED ring
+  - Connect via WiFi to local router (GL-MT300N-V2)
+- **unRAID Server:** External transcription service (via Tailscale)
+  - **faster-whisper:** Port 10300, Wyoming protocol (managed outside this repo)
+  - Pi connects via Tailscale for audio transcription
+
+### Network Topology
+```
+Internet → GL-MT300N-V2 Router (LAN: 192.168.8.x)
+  ├─ Raspberry Pi 5 (hub, runs all services, Tailscale client)
+  ├─ ESP32 node1 (WiFi, publishes to Pi MQTT)
+  └─ ESP32 node2 (WiFi, publishes to Pi MQTT)
+
+Pi Tailscale ←→ unRAID (faster-whisper transcription)
+```
+
+**Key Design**: Pi is self-contained and portable. Only needs internet for Whisper transcription.
 
 ## Invariants
 - Topics: `party/<house>/<node>/<domain>/<signal>`
@@ -14,7 +33,21 @@
 - Privacy: remote nodes stream **features**, **not** continuous raw audio; event clips are short & throttled.
 
 ## Data Flow (MVP)
-ESP32 PlatformIO → MQTT → Aggregator → MQTT/WS → UI → User
+
+### Sensor Data Flow
+```
+ESP32 Nodes → MQTT (Pi) → Aggregator (Pi) → MQTT/WS → UI (Pi) → Touchscreen
+```
+
+### Transcription Flow
+```
+Pi INMP441 Mic → Audio Bridge (Pi) → HTTP → Whisper (unRAID) → Audio Bridge → MQTT (Pi) → UI
+```
+
+### User Interaction
+```
+Touchscreen → UI (Pi) → MQTT → ESP32 LED Rings
+```
 
 ## Failure Modes
 - Broker down: UI shows stale state; aggregator retries.
@@ -30,6 +63,36 @@ ESP32 PlatformIO → MQTT → Aggregator → MQTT/WS → UI → User
 - **Build:** `pio run -e node1-usb -t upload` (first time), `pio run -e node1-ota -t upload` (subsequent)
 
 ## Build/Run
-- **Services:** `docker compose -f infra/docker-compose.yml up -d`
-- **Firmware:** `pio run -e node1-usb -t upload` (see `firmware/wm_node/README.md`)
-- **Pi deploy:** run UI & LED on Pi; point to unRAID broker (set `.env`).
+
+### Development (unRAID)
+```bash
+# Test services locally before deploying to Pi
+docker compose -f infra/docker-compose.yml up -d
+```
+
+### Production (Raspberry Pi)
+```bash
+# One-time bootstrap (on Pi)
+curl -sSL https://raw.githubusercontent.com/USER/whispering-machine/main/scripts/pi_bootstrap.sh | bash
+sudo reboot
+
+# Deploy from unRAID
+./scripts/pi_deploy.sh
+
+# Or manually on Pi
+cd /home/pi/whispering-machine
+git pull
+docker compose -f pi/compose.yml up -d --build
+```
+
+### ESP32 Firmware
+```bash
+# First time (USB)
+cd firmware/wm_node
+pio run -e node1-usb -t upload
+
+# Subsequent updates (OTA)
+pio run -e node1-ota -t upload
+```
+
+See `docs/PI_HUB_DEPLOYMENT.md` for complete deployment guide.

@@ -4,6 +4,242 @@
 
 ---
 
+## 🚨 CRITICAL PATH: Pi Hub Deployment (MVP Deadline)
+
+These tickets must be completed to get the Pi hub running for the MVP demo.
+
+### T-021: Pi Bootstrap Script & I²S Setup
+**Status**: TODO  
+**Priority**: CRITICAL  
+**Goal**: Create one-time Pi setup script for hardware and software initialization.
+
+**Tasks**:
+- Create `scripts/pi_bootstrap.sh` with:
+  - System package updates
+  - Docker + Docker Compose plugin installation
+  - Tailscale installation (optional)
+  - I²S overlay enablement for INMP441
+  - User added to `docker` and `audio` groups
+  - Repo clone to `/home/pi/whispering-machine`
+- Create `pi/.env.example` with all required environment variables
+- Create `pi/README.md` with wiring diagram and setup instructions
+
+**Acceptance**:
+- Script runs without errors on fresh Pi 5
+- `arecord -l` shows I²S device after reboot
+- Docker and Compose are functional
+- User can run `docker compose` without `sudo`
+
+**Test**:
+```bash
+ssh pi@192.168.8.x
+curl -sSL https://raw.githubusercontent.com/USER/whispering-machine/main/scripts/pi_bootstrap.sh | bash
+# Reboot
+arecord -l  # Should show I²S device
+docker --version
+docker compose version
+```
+
+**Estimated Time**: 2-3 hours
+
+---
+
+### T-022: Pi Docker Compose Stack
+**Status**: TODO  
+**Priority**: CRITICAL  
+**Goal**: Create Pi-specific compose file that runs all services locally.
+
+**Tasks**:
+- Create `pi/compose.yml` with services:
+  - `mosquitto` (MQTT broker)
+  - `aggregator` (reuse existing, point to local broker)
+  - `ui` (reuse existing, point to local broker)
+- Ensure services use relative paths to existing service directories
+- Add health checks for all services
+- Configure proper restart policies
+- Document environment variables in `pi/.env.example`
+
+**Acceptance**:
+- `docker compose -f pi/compose.yml up -d` starts all services
+- MQTT broker reachable at `localhost:1883` and `0.0.0.0:1884`
+- UI accessible at `http://localhost:8000`
+- All services show healthy in `docker ps`
+
+**Test**:
+```bash
+cd /home/pi/whispering-machine
+docker compose -f pi/compose.yml up -d
+docker ps  # All services running
+mosquitto_pub -h localhost -t test -m "hello"
+curl http://localhost:8000  # UI loads
+```
+
+**Estimated Time**: 2-3 hours
+
+---
+
+### T-023: Audio Bridge Service (Pi INMP441 → Whisper)
+**Status**: TODO  
+**Priority**: CRITICAL  
+**Goal**: Capture audio from Pi's INMP441, send to unRAID Whisper, publish transcripts to MQTT.
+
+**Tasks**:
+- Create `services/audio_bridge/` with:
+  - `Dockerfile` (Python 3.10, PyAudio, httpx, paho-mqtt)
+  - `app.py` (main service logic)
+  - `requirements.txt`
+  - `audio_capture.py` (ALSA/PyAudio wrapper)
+  - `whisper_client.py` (Wyoming protocol client)
+  - `mqtt_publisher.py` (transcript publishing)
+- Implement audio capture loop (chunk to 2-5s WAV)
+- Implement HTTP POST to Whisper service
+- Implement MQTT publish to `party/<house>/pihub/speech/transcript`
+- Add trigger modes: manual, VAD (voice activity detection), button
+- Add error handling, retries, logging
+
+**Acceptance**:
+- Service starts and connects to MQTT
+- Captures audio from INMP441 (verify with logs)
+- Sends WAV chunks to Whisper service
+- Publishes transcripts to MQTT within 5 seconds
+- Gracefully handles Whisper service downtime
+
+**Test**:
+```bash
+# On Pi
+docker logs pi_audio_bridge --tail 50
+# Should show: "Audio bridge started", "Captured chunk", "Transcript: ..."
+
+# Subscribe to transcripts
+mosquitto_sub -h localhost -t 'party/+/pihub/speech/transcript'
+# Speak near mic, should see transcript within 5s
+```
+
+**Estimated Time**: 4-6 hours
+
+---
+
+### T-024: Pi Deployment Script
+**Status**: TODO  
+**Priority**: CRITICAL  
+**Goal**: Automate deployment from unRAID to Pi via SSH.
+
+**Tasks**:
+- Create `scripts/pi_deploy.sh` with:
+  - SSH to Pi (using key or password)
+  - Pull latest from GitHub
+  - Run `docker compose -f pi/compose.yml up -d --build`
+  - Show logs and status
+- Add configuration via environment variables or command-line args
+- Add error handling and rollback on failure
+- Document usage in script header and `pi/README.md`
+
+**Acceptance**:
+- Script runs from unRAID without errors
+- Connects to Pi via SSH
+- Pulls latest code
+- Rebuilds and restarts services
+- Shows deployment status and logs
+
+**Test**:
+```bash
+# On unRAID
+./scripts/pi_deploy.sh
+# Should show: "Connecting to Pi...", "Pulling repo...", "Building...", "Services started"
+# Verify on Pi that services are updated
+```
+
+**Estimated Time**: 1-2 hours
+
+---
+
+### T-025: ESP32 Firmware Config for Pi MQTT Broker
+**Status**: TODO  
+**Priority**: CRITICAL  
+**Goal**: Update ESP32 firmware to connect to Pi's MQTT broker instead of unRAID.
+
+**Tasks**:
+- Update `firmware/wm_node/secrets.ini` with Pi IP address
+- Verify MQTT connection to Pi broker
+- Test all MQTT topics (audio, occupancy, encoder, button, ring)
+- Update `firmware/wm_node/README.md` with new broker config
+
+**Acceptance**:
+- ESP32 nodes connect to Pi MQTT broker at `192.168.8.x:1883`
+- All topics publish successfully
+- Debug UI on Pi shows ESP32 data
+
+**Test**:
+```bash
+# On Pi
+mosquitto_sub -h localhost -t 'party/+/+/+/+' -v
+# Should see messages from node1 and node2
+```
+
+**Estimated Time**: 30 minutes
+
+---
+
+### T-026: UI Transcript Panel
+**Status**: TODO  
+**Priority**: HIGH  
+**Goal**: Add transcript display to party tracker UI.
+
+**Tasks**:
+- Create `services/ui/static/js/components/transcript-panel.js`
+- Subscribe to `party/<house>/pihub/speech/transcript` in state manager
+- Display last 10 transcripts with timestamps
+- Add confidence indicator (color-coded)
+- Style for touchscreen readability
+- Add to party tracker UI (not debug UI)
+
+**Acceptance**:
+- Transcript panel appears in UI
+- Shows latest transcripts in real-time
+- Timestamps are human-readable
+- Confidence shown visually (green/yellow/red)
+
+**Test**:
+- Speak near Pi mic
+- Transcript appears in UI within 5 seconds
+- Multiple transcripts stack correctly
+
+**Estimated Time**: 2-3 hours
+
+---
+
+### T-027: Party Tracker UI (Touchscreen)
+**Status**: TODO  
+**Priority**: HIGH  
+**Goal**: Create simplified party tracker UI for Pi touchscreen.
+
+**Tasks**:
+- Create `services/ui/static/party.html` (new page)
+- Create `services/ui/static/js/pages/party-app.js`
+- Reuse components: `StatusTable`, `LEDRingViz`, `ConnectionStatus`
+- Add new `TranscriptPanel` component
+- Design for 7" touchscreen (1024x600)
+- Large, touch-friendly buttons and text
+- Show: occupancy, transcripts, LED states, connection status
+- Add route in `services/ui/main.py` for `/party`
+
+**Acceptance**:
+- Party tracker loads at `http://localhost:8000/party`
+- Readable on 7" touchscreen
+- Shows all nodes (ESP32 + Pi hub)
+- Updates in real-time
+- Touch-friendly interface
+
+**Test**:
+- Load UI on Pi touchscreen
+- Verify all data updates
+- Test touch interactions
+- Leave running for 1 hour, verify stability
+
+**Estimated Time**: 4-6 hours
+
+---
+
 ## T-001 UI: Replace loudness bar with smoothing + sparkline
 **Goal:** Visually stable loudness with a 30s sparkline.
 **Tasks:**

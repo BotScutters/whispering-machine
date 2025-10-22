@@ -1,12 +1,37 @@
 # Whispering Machine
 
-Interactive AI party tracker dashboard with ESP32 sensor nodes (Wi-Fi/MQTT),
-a Raspberry Pi touchscreen UI, and optional UnRAID workers for heavier jobs.
+Interactive party tracker with ESP32 sensor nodes and Raspberry Pi 5 hub featuring real-time audio transcription, occupancy tracking, and dynamic LED visualizations.
 
-## Quickstart (on unRAID)
-1) `cp .env.example .env`
-2) `docker compose -f infra/docker-compose.yml up --build -d`
-3) Open http://<unraid-ip>:8000
+## Architecture
+
+- **Raspberry Pi 5 Hub**: Central controller with 7" touchscreen, runs all services (MQTT, Aggregator, UI, Audio Bridge)
+- **ESP32 Nodes (x2)**: Remote sensors with INMP441 mics, PIR sensors, rotary encoders, and WS2812 LED rings
+- **unRAID Server**: External faster-whisper transcription service (via Tailscale)
+
+## Quickstart
+
+### Development (unRAID)
+```bash
+# Test services locally
+cp .env.example .env
+docker compose -f infra/docker-compose.yml up -d
+# Open http://localhost:8000/debug
+```
+
+### Production (Raspberry Pi)
+```bash
+# One-time setup (on Pi)
+curl -sSL https://raw.githubusercontent.com/USER/whispering-machine/main/scripts/pi_bootstrap.sh | bash
+sudo reboot
+
+# Deploy from unRAID
+./scripts/pi_deploy.sh
+
+# Access party tracker
+# http://<pi-ip>:8000/party
+```
+
+See [`docs/PI_HUB_DEPLOYMENT.md`](docs/PI_HUB_DEPLOYMENT.md) for complete setup guide.
 
 ## Documentation
 

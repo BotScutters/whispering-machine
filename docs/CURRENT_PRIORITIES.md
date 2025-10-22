@@ -1,10 +1,12 @@
-# Current Priorities (Phase 1: Debug & Calibration)
+# Current Priorities (MVP: Pi Hub Deployment)
 
-## Status: Debug Infrastructure Complete, LED System Ready
+## Status: 🚨 CRITICAL - Pi Hub Integration Required for MVP
 
-**Last Updated**: October 11, 2025
+**Last Updated**: October 14, 2025
 
-We've completed the core debug infrastructure and have a fully functional LED ring behavior system. Focus is now on tuning, validation, and preparing for the party tracker UI.
+**MAJOR ARCHITECTURE SHIFT**: Moving from unRAID-hosted services to Raspberry Pi 5 hub as the central controller. All services (MQTT, Aggregator, UI) will run on Pi, with ESP32 nodes connecting to Pi's broker. Pi will use Tailscale to reach unRAID's faster-whisper service for transcription.
+
+**Timeline**: Few working days remaining - focus on critical path only.
 
 ---
 
@@ -72,44 +74,80 @@ We've completed the core debug infrastructure and have a fully functional LED ri
 
 ---
 
-## Next Priorities
+## 🚨 CRITICAL PATH (MVP Deadline)
 
-### Immediate (Optional Tuning)
-1. **Audio Reactive Mode Tuning**
-   - Adjust RMS scaling if too sensitive/insensitive
-   - Test with various audio levels (silence, conversation, music)
-   
-2. **PIR Activity Calibration**
-   - Validate activity metric accuracy
-   - Test proximity responsiveness
-   - Tune for LED intensity modulation
+**Goal**: Get Pi hub running with all services, ESP32 nodes connected, and transcription working.
 
-3. **LED Mode Refinement**
-   - Test all modes in real-world conditions
-   - Adjust speeds, colors, intensities as needed
-   - Document preferred modes for different scenarios
+**Estimated Total Time**: 15-20 hours
 
-### Short-Term Features
-4. **T-018: Generic Node Auto-Discovery**
-   - Remove hard-coded node names
-   - Dynamic signal discovery
-   - Prepare for 3rd node and Raspberry Pi hub
+### Phase 1: Pi Infrastructure (CRITICAL)
+**T-021: Pi Bootstrap Script** (2-3 hours)
+- One-time Pi setup: Docker, I²S, Tailscale
+- **Blocker**: Must complete before any other Pi work
+- **Owner**: Start immediately
 
-5. **Party Tracker UI (New Ticket)**
-   - Reuse modular components from debug UI
-   - Build simplified public-facing interface
-   - Focus on occupancy, mood, interaction tracking
+**T-022: Pi Docker Compose Stack** (2-3 hours)
+- Migrate MQTT, Aggregator, UI to Pi
+- **Depends on**: T-021
+- **Owner**: Start after bootstrap tested
 
-### Medium-Term Features
-6. **T-020: Audio Clip Recording & Transcription**
-   - Event-triggered audio snippets on ESP32
-   - Whisper transcription service
-   - MQTT publish of transcribed text
+**T-025: ESP32 Firmware Config** (30 minutes)
+- Point ESP32 nodes to Pi MQTT broker
+- **Depends on**: T-022
+- **Owner**: Quick win after Pi stack running
 
-7. **T-002: Mood Detection**
-   - Audio spike analysis
-   - Activity-based mood inference
-   - LED behavior driven by mood state
+### Phase 2: Audio Transcription (CRITICAL)
+**T-023: Audio Bridge Service** (4-6 hours)
+- Pi INMP441 → unRAID Whisper → MQTT
+- **Depends on**: T-022 (needs MQTT broker)
+- **Owner**: Can start in parallel with T-025
+
+### Phase 3: Deployment & UI (HIGH)
+**T-024: Pi Deployment Script** (1-2 hours)
+- Automate unRAID → Pi deployment
+- **Depends on**: T-022
+- **Owner**: Start after stack working
+
+**T-027: Party Tracker UI** (4-6 hours)
+- Touchscreen-optimized UI with transcripts
+- **Depends on**: T-023 (needs transcript data)
+- **Owner**: Start after transcription working
+
+**T-026: Transcript Panel Component** (2-3 hours)
+- Reusable transcript display component
+- **Depends on**: T-023
+- **Owner**: Part of T-027, can be concurrent
+
+---
+
+## Execution Plan (Recommended Order)
+
+### Day 1: Pi Foundation
+1. ✅ **T-021** - Bootstrap Pi (morning)
+2. ✅ **T-022** - Pi compose stack (afternoon)
+3. ✅ **T-025** - ESP32 config (evening)
+4. **Checkpoint**: ESP32 nodes publishing to Pi, UI showing data
+
+### Day 2: Audio Pipeline
+5. ✅ **T-023** - Audio bridge (full day)
+6. **Checkpoint**: Transcripts appearing in MQTT
+
+### Day 3: Polish & Deploy
+7. ✅ **T-024** - Deployment script (morning)
+8. ✅ **T-027** - Party tracker UI (afternoon/evening)
+9. **Checkpoint**: Full system running on Pi, ready for demo
+
+---
+
+## Deferred (Post-MVP)
+
+These are valuable but not critical for MVP:
+
+- **T-018**: Generic node auto-discovery (nice-to-have)
+- **T-001**: Loudness sparkline (polish)
+- **T-002**: Mood detection (future enhancement)
+- **Audio tuning**: RMS scaling, PIR calibration (can tune live)
+- **LED refinement**: Mode adjustments (working well enough)
 
 ---
 
