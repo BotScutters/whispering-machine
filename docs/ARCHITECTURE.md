@@ -2,51 +2,60 @@
 
 ## Overview
 
-### Deployment Architecture (MVP)
-- **Raspberry Pi 5 Hub:** Central controller running all services locally
+### Deployment Architecture (Party Night)
+- **MacBook Hub:** Central controller running all services locally
   - **Mosquitto:** MQTT broker (port 1883 internal, 1884 host)
   - **Aggregator:** Subscribes to all nodes, computes metrics, publishes UI state
-  - **UI:** FastAPI + WebSocket, serves party tracker on 7" touchscreen
-  - **Audio Bridge:** Captures from INMP441 mic, sends to Whisper, publishes transcripts
-- **ESP32 Nodes (x2):** Remote sensors publishing to Pi's MQTT broker
-  - Audio features, PIR, encoder, button, LED ring
-  - Connect via WiFi to local router (GL-MT300N-V2)
+  - **UI:** FastAPI + WebSocket, serves party interface on 7" touchscreen
+  - **Audio Bridge:** Captures from MacBook built-in mic, sends to Whisper, publishes transcripts
+  - **LLM Agent:** Generates intelligent observations from sensor data
+- **ESP32 Nodes (x3):** Remote sensors publishing to MacBook's MQTT broker
+  - Audio features, PIR, encoder, button, LED ring (potentially unreliable)
+  - Connect via WiFi to local router
 - **unRAID Server:** External transcription service (via Tailscale)
   - **faster-whisper:** Port 10300, Wyoming protocol (managed outside this repo)
-  - Pi connects via Tailscale for audio transcription
+  - MacBook connects via Tailscale for audio transcription
 
 ### Network Topology
 ```
-Internet → GL-MT300N-V2 Router (LAN: 192.168.8.x)
-  ├─ Raspberry Pi 5 (hub, runs all services, Tailscale client)
-  ├─ ESP32 node1 (WiFi, publishes to Pi MQTT)
-  └─ ESP32 node2 (WiFi, publishes to Pi MQTT)
+Internet → Local Router (WiFi)
+  ├─ MacBook (hub, runs all services, Tailscale client, lid closed)
+  │  ├─ Built-in Microphone
+  │  └─ External Display (7" touchscreen)
+  ├─ ESP32 node1 (WiFi, publishes to MacBook MQTT)
+  ├─ ESP32 node2 (WiFi, publishes to MacBook MQTT)
+  └─ ESP32 node3 (WiFi, publishes to MacBook MQTT)
 
-Pi Tailscale ←→ unRAID (faster-whisper transcription)
+MacBook Tailscale ←→ unRAID (faster-whisper transcription)
 ```
 
-**Key Design**: Pi is self-contained and portable. Only needs internet for Whisper transcription.
+**Key Design**: MacBook is self-contained and portable. Runs with lid closed, drives external touchscreen. Only needs internet for Whisper transcription.
 
 ## Invariants
 - Topics: `party/<house>/<node>/<domain>/<signal>`
 - Message: **small JSON**, stable keys, unix `ts_ms`.
 - Privacy: remote nodes stream **features**, **not** continuous raw audio; event clips are short & throttled.
 
-## Data Flow (MVP)
+## Data Flow (Party Night)
 
 ### Sensor Data Flow
 ```
-ESP32 Nodes → MQTT (Pi) → Aggregator (Pi) → MQTT/WS → UI (Pi) → Touchscreen
+ESP32 Nodes (x3) → MQTT (MacBook) → Aggregator (MacBook) → MQTT/WS → UI (MacBook) → Touchscreen
 ```
 
 ### Transcription Flow
 ```
-Pi INMP441 Mic → Audio Bridge (Pi) → HTTP → Whisper (unRAID) → Audio Bridge → MQTT (Pi) → UI
+MacBook Built-in Mic → Audio Bridge (MacBook) → HTTP → Whisper (unRAID) → Audio Bridge → MQTT (MacBook) → UI
+```
+
+### Intelligence Flow
+```
+Sensor Data + Randomness → LLM Agent (MacBook) → Observations → MQTT (MacBook) → UI
 ```
 
 ### User Interaction
 ```
-Touchscreen → UI (Pi) → MQTT → ESP32 LED Rings
+Touchscreen → UI (MacBook) → MQTT → ESP32 LED Rings
 ```
 
 ## Failure Modes
@@ -66,23 +75,21 @@ Touchscreen → UI (Pi) → MQTT → ESP32 LED Rings
 
 ### Development (unRAID)
 ```bash
-# Test services locally before deploying to Pi
+# Test services locally before deploying to MacBook
 docker compose -f infra/docker-compose.yml up -d
 ```
 
-### Production (Raspberry Pi)
+### Production (MacBook)
 ```bash
-# One-time bootstrap (on Pi)
-curl -sSL https://raw.githubusercontent.com/USER/whispering-machine/main/scripts/pi_bootstrap.sh | bash
-sudo reboot
+# Party mode setup
+cd /path/to/whispering-machine
+docker compose -f macbook/compose.yml up -d
 
-# Deploy from unRAID
-./scripts/pi_deploy.sh
+# Party mode deployment
+./scripts/party_deploy.sh
 
-# Or manually on Pi
-cd /home/pi/whispering-machine
-git pull
-docker compose -f pi/compose.yml up -d --build
+# Access party interface
+# http://localhost:8000/party
 ```
 
 ### ESP32 Firmware
@@ -95,4 +102,4 @@ pio run -e node1-usb -t upload
 pio run -e node1-ota -t upload
 ```
 
-See `docs/PI_HUB_DEPLOYMENT.md` for complete deployment guide.
+See `docs/CURRENT_PRIORITIES.md` for party night execution plan.

@@ -1,184 +1,267 @@
-# Current Priorities (MVP: Pi Hub Deployment)
+# Current Priorities (Party Night: MacBook Interface)
 
-## Status: 🚨 CRITICAL - Pi Hub Integration Required for MVP
+## Status: 🚨 CRITICAL - 3 Days to Party Night
 
-**Last Updated**: October 14, 2025
+**Last Updated**: October 21, 2025
 
-**MAJOR ARCHITECTURE SHIFT**: Moving from unRAID-hosted services to Raspberry Pi 5 hub as the central controller. All services (MQTT, Aggregator, UI) will run on Pi, with ESP32 nodes connecting to Pi's broker. Pi will use Tailscale to reach unRAID's faster-whisper service for transcription.
+**MAJOR PIVOT**: Pi is dead. MacBook now serves as the central hub, driving 7" touchscreen and running all services. Focus on creating a compelling "unreliable narrator" that works even with spotty ESP32 sensors.
 
-**Timeline**: Few working days remaining - focus on critical path only.
-
----
-
-## Recently Completed ✅
-
-### T-009: Audio Feature Extraction ✅
-- Implemented ZCR (zero-crossing rate)
-- Implemented 3-band IIR filters (low 0-300Hz, mid 300-3000Hz, high 3000Hz+)
-- Biquad filter implementation with optimized performance
-- All audio features now reporting non-zero values
-
-### T-013: PIR Activity & Transitions ✅
-- Added activity metric (0.0-1.0) representing motion over 10 seconds
-- Added transitions counter for motion pattern detection
-- Increased publish rate to 10 Hz for smoother tracking
-- Enables proximity-responsive behaviors
-
-### T-014: Encoder/Button Debugging ✅
-- Fixed encoder delta calculation (incremental changes)
-- Added button press/release event types
-- Implemented NTP time synchronization across all nodes
-- All timestamps now synchronized
-
-### T-015: Debug UI Modular Signal Plotting ✅
-- Can plot any numeric signal from any node
-- Signal visibility toggles, color customization
-- Time range controls (5s to 1h)
-- Log scale toggle
-- LocalStorage persistence
-
-### T-012a: LED Ring Behavior System ✅
-- 5 visualization modes (Idle Breathing, Audio Reactive, Rainbow, Aurora, Occupancy Pulse)
-- Encoder button cycles modes
-- Encoder rotation adjusts animation speed
-- Ring state published at 5 Hz with full RGB per-pixel data
-- Debug UI shows live LED ring visualization
-
-### T-019: Debug UI Refactor ✅
-- Transformed from 1573-line monolith to 12 modular files
-- Component-based architecture with BaseComponent
-- Centralized state management with observer pattern
-- StatusTable component reused 4 times
-- Ready for party tracker UI code reuse
+**Timeline**: 3 days remaining - focus on party-ready interface only.
 
 ---
 
-## Current System State
+## Party Night Requirements
 
-### Fully Working ✅
-- ✅ ESP32 nodes with all sensors (audio, PIR, encoder, button, LED ring)
-- ✅ Audio features: RMS, ZCR, 3-band frequency analysis
-- ✅ PIR: occupied, activity, transitions
-- ✅ Encoder: position, delta with speed adjustment
-- ✅ Button: press/release events with mode cycling
-- ✅ LED Ring: 5 modes, encoder control, full RGB visualization
-- ✅ Debug UI: Modular signal plotting, status tables, LED simulator
-- ✅ MQTT message debugger with filtering
-- ✅ NTP time synchronization
-- ✅ Connection status indicators
+### Core Vision
+> "The Whispering Machine listens. Scattered through the room, its small sensor nodes observe light, movement, and fragments of speech–quietly feeding them into a shared digital mind. The system murmurs back in text and light, a half-comprehending echo of the conversations and energies that surround it. It is playful, confident, and untrustworthy."
 
-### Ready for Next Phase
-- Sensor calibration and tuning (all signals visible)
-- LED behavior refinement (modes working, needs tuning)
-- Party tracker UI development (components ready to reuse)
+### Technical Requirements
+- **MacBook**: Runs all services, drives 7" touchscreen, lid can be closed
+- **Audio**: MacBook built-in mic → Whisper transcription via Tailscale
+- **Sensors**: 3 ESP32 nodes (even if unreliable/garbage signals)
+- **Interface**: Compelling, unreliable narrator aesthetic
+- **Runtime**: 6+ hours standalone operation
+- **Robustness**: Works with 0-3 functioning sensors
 
 ---
 
-## 🚨 CRITICAL PATH (MVP Deadline)
+## 🚨 CRITICAL PATH (3 Days to Party)
 
-**Goal**: Get Pi hub running with all services, ESP32 nodes connected, and transcription working.
+**Goal**: MacBook-based party interface that whispers what it hears, even when it's not sure.
 
-**Estimated Total Time**: 15-20 hours
+**Estimated Total Time**: 22-28 hours
 
-### Phase 1: Pi Infrastructure (CRITICAL)
-**T-021: Pi Bootstrap Script** (2-3 hours)
-- One-time Pi setup: Docker, I²S, Tailscale
-- **Blocker**: Must complete before any other Pi work
-- **Owner**: Start immediately
+### Day 1: Foundation (8-10 hours)
+**T-028: MacBook Service Stack** (2-3 hours)
+- Docker compose for MacBook
+- All services running locally
+- **Blocker**: Must work before anything else
 
-**T-022: Pi Docker Compose Stack** (2-3 hours)
-- Migrate MQTT, Aggregator, UI to Pi
-- **Depends on**: T-021
-- **Owner**: Start after bootstrap tested
+**T-029: MacBook Audio Bridge** (3-4 hours) ⭐ MOST COMPLEX
+- Built-in mic capture with lid closed
+- Whisper transcription via Tailscale
+- **Critical**: Audio is core to the experience
 
-**T-025: ESP32 Firmware Config** (30 minutes)
-- Point ESP32 nodes to Pi MQTT broker
-- **Depends on**: T-022
-- **Owner**: Quick win after Pi stack running
+**T-030: Multi-Node Support** (2-3 hours)
+- Handle 3 ESP32 nodes
+- Robust to unreliable signals
+- **Depends on**: T-028
 
-### Phase 2: Audio Transcription (CRITICAL)
-**T-023: Audio Bridge Service** (4-6 hours)
-- Pi INMP441 → unRAID Whisper → MQTT
-- **Depends on**: T-022 (needs MQTT broker)
-- **Owner**: Can start in parallel with T-025
+**Checkpoint**: MacBook running all services, 3 nodes connected, audio transcription working
 
-### Phase 3: Deployment & UI (HIGH)
-**T-024: Pi Deployment Script** (1-2 hours)
-- Automate unRAID → Pi deployment
-- **Depends on**: T-022
-- **Owner**: Start after stack working
+### Day 2: Interface & Intelligence (8-10 hours)
+**T-031: Party Interface UI** (4-5 hours) ⭐ MOST VISIBLE
+- 7" touchscreen optimized
+- Unreliable narrator aesthetic
+- **Critical**: This is what people see
 
-**T-027: Party Tracker UI** (4-6 hours)
-- Touchscreen-optimized UI with transcripts
-- **Depends on**: T-023 (needs transcript data)
-- **Owner**: Start after transcription working
+**T-032: LLM Agent Service** (3-4 hours)
+- Generate unsettling observations
+- Incorporate sensor data + randomness
+- **Key**: Makes it "intelligent-sounding"
 
-**T-026: Transcript Panel Component** (2-3 hours)
-- Reusable transcript display component
-- **Depends on**: T-023
-- **Owner**: Part of T-027, can be concurrent
+**T-033: Robust Data Processing** (2-3 hours)
+- Handle garbage sensor data gracefully
+- Confidence indicators
+- **Important**: System works even when sensors fail
 
----
+**Checkpoint**: Compelling interface with intelligent observations, works with unreliable sensors
 
-## Execution Plan (Recommended Order)
+### Day 3: Polish & Deploy (6-8 hours)
+**T-034: Touchscreen Setup** (2-3 hours)
+- Closed-lid MacBook operation
+- External display configuration
+- **Important**: Hide the MacBook
 
-### Day 1: Pi Foundation
-1. ✅ **T-021** - Bootstrap Pi (morning)
-2. ✅ **T-022** - Pi compose stack (afternoon)
-3. ✅ **T-025** - ESP32 config (evening)
-4. **Checkpoint**: ESP32 nodes publishing to Pi, UI showing data
+**T-035: Party Mode Deployment** (2-3 hours)
+- End-to-end testing
+- Emergency procedures
+- **Critical**: Must work on party night
 
-### Day 2: Audio Pipeline
-5. ✅ **T-023** - Audio bridge (full day)
-6. **Checkpoint**: Transcripts appearing in MQTT
-
-### Day 3: Polish & Deploy
-7. ✅ **T-024** - Deployment script (morning)
-8. ✅ **T-027** - Party tracker UI (afternoon/evening)
-9. **Checkpoint**: Full system running on Pi, ready for demo
+**Checkpoint**: Ready for party night, tested for 6+ hours
 
 ---
 
-## Deferred (Post-MVP)
+## Key Technical Challenges
 
-These are valuable but not critical for MVP:
+### 1. MacBook Closed-Lid Operation
+**Challenge**: Run services and capture audio with lid closed
+**Research Needed**: macOS behavior, Core Audio, power management
+**Fallback**: Leave lid open, display black screen
 
-- **T-018**: Generic node auto-discovery (nice-to-have)
-- **T-001**: Loudness sparkline (polish)
-- **T-002**: Mood detection (future enhancement)
-- **Audio tuning**: RMS scaling, PIR calibration (can tune live)
-- **LED refinement**: Mode adjustments (working well enough)
+### 2. Unreliable Sensor Handling
+**Challenge**: Make garbage signals compelling, not broken
+**Approach**: Embrace uncertainty as part of the aesthetic
+**Implementation**: Confidence indicators, partial data, plausible fakes
+
+### 3. LLM Integration
+**Challenge**: Generate unsettling observations without being obvious
+**Approach**: Mix real sensor data with randomness
+**Implementation**: Rate limiting, fallback responses, varied prompts
+
+### 4. 6+ Hour Runtime
+**Challenge**: System stability for entire party
+**Approach**: Robust error handling, auto-recovery, monitoring
+**Implementation**: Health checks, graceful degradation, logging
 
 ---
 
-## Architecture Status
+## Architecture Overview
 
-### Infrastructure ✅
-- Docker Compose setup with MQTT broker, aggregator, UI
-- ESP32 PlatformIO firmware with OTA updates
-- FastAPI backend with WebSocket support
-- Modular JavaScript frontend architecture
+```
+MacBook (Closed Lid)
+├─ Docker Services
+│  ├─ mosquitto (MQTT broker)
+│  ├─ aggregator (processes sensor data)
+│  ├─ ui (party interface)
+│  ├─ audio_bridge (mic → Whisper)
+│  └─ llm_agent (generates observations)
+├─ Built-in Microphone
+└─ External Display (7" touchscreen)
 
-### Documentation ✅
-- ARCHITECTURE.md - System overview
-- SENSOR_REFERENCE.md - Detailed sensor signal documentation
-- TICKETS.md - Well-scoped work items
-- ROADMAP.md - High-level milestones
-- AGENT_MEMORY.md - Project-specific gotchas
-- T-019_UI_REFACTOR.md - UI architecture spec
-- Cursor rules - Development guidelines
+ESP32 Nodes (3x, potentially unreliable)
+├─ node1 (audio, PIR, encoder, LED)
+├─ node2 (audio, PIR, encoder, LED)
+└─ node3 (audio, PIR, encoder, LED)
 
-### Testing ✅
-- Manual testing via debug UI
-- MQTT message validation
-- Per-node sensor readouts
-- Live signal plotting and validation
+Tailscale Tunnel
+└─ unRAID (faster-whisper transcription)
+```
+
+---
+
+## Design Principles
+
+### Unreliable Narrator Aesthetic
+- **Playful, confident, untrustworthy**
+- Show partial information
+- Inject plausible but uncertain data
+- Use confidence indicators (high/medium/low/unknown)
+- Embrace sensor failures as part of the experience
+
+### Robust Operation
+- **Works with 0-3 sensors**
+- Graceful degradation when nodes fail
+- 6+ hour runtime without intervention
+- Closed-lid MacBook operation
+- Emergency recovery procedures
+
+### Party-Ready Interface
+- **7" touchscreen optimized**
+- Large, readable text from 3 feet away
+- Touch-friendly interactions
+- Full-screen, no browser chrome
+- Compelling even when sensors fail
+
+---
+
+## Deferred (Post-Party)
+
+These are valuable but not critical for party night:
+
+- **Pi hub tickets (T-021-T027)**: Pi is dead
+- **Sensor debugging**: Fix INMP441 wiring issues
+- **LED refinement**: Mode adjustments
+- **Generic node auto-discovery**: Nice-to-have
+- **Mood detection**: Future enhancement
+- **Audio tuning**: Can tune live if needed
+
+---
+
+## Risk Assessment
+
+### High Risk
+- **T-029 (Audio Bridge)**: Complex macOS audio capture, closed-lid behavior
+  - Mitigation: Research thoroughly, test early, have fallback plan
+- **T-031 (Party Interface)**: Most visible, must be compelling
+  - Mitigation: Start with simple version, iterate quickly
+
+### Medium Risk
+- **T-032 (LLM Agent)**: API dependencies, rate limiting
+  - Mitigation: Implement fallback responses, test with API disabled
+- **T-034 (Touchscreen Setup)**: macOS display management
+  - Mitigation: Test on actual hardware early
+
+### Low Risk
+- **T-028 (Service Stack)**: Reusing existing services
+- **T-030 (Multi-Node)**: Extending existing aggregator
+- **T-033 (Robust Processing)**: Software-only changes
+- **T-035 (Deployment)**: Scripting and testing
+
+---
+
+## Success Criteria
+
+**Party-ready when**:
+- [ ] MacBook runs all services with lid closed
+- [ ] 7" touchscreen shows compelling interface
+- [ ] Audio transcription works via Tailscale
+- [ ] 3 ESP32 nodes supported (even if unreliable)
+- [ ] LLM generates unsettling observations
+- [ ] System works with garbage sensor data
+- [ ] Runs for 6+ hours without intervention
+- [ ] Emergency procedures tested
+- [ ] Backup plan ready
+
+---
+
+## Emergency Procedures
+
+### If MacBook Fails
+- **Backup**: Use unRAID services + laptop
+- **Fallback**: Debug UI on laptop screen
+- **Recovery**: Quick restart script
+
+### If Sensors All Fail
+- **Behavior**: Show "unreliable" status
+- **Fallback**: Generate plausible fake data
+- **Recovery**: Manual sensor restart
+
+### If Whisper Fails
+- **Behavior**: Show "listening..." without transcripts
+- **Fallback**: Use audio features only
+- **Recovery**: Restart audio bridge service
+
+### If Network Fails
+- **Behavior**: Show cached data
+- **Fallback**: Local-only mode
+- **Recovery**: Network restart
+
+---
+
+## Party Night Checklist
+
+### Pre-Party (Day 3)
+- [ ] Full system test (6+ hours)
+- [ ] Emergency procedures tested
+- [ ] Backup plan verified
+- [ ] MacBook battery charged
+- [ ] Touchscreen calibrated
+- [ ] Network stable
+
+### Party Night Setup
+- [ ] MacBook in party mode
+- [ ] Lid closed, external display active
+- [ ] All services running
+- [ ] ESP32 nodes powered
+- [ ] Touchscreen displaying interface
+- [ ] Emergency procedures ready
+
+### During Party
+- [ ] Monitor system health
+- [ ] Check for error logs
+- [ ] Verify observations are generating
+- [ ] Ensure interface remains compelling
+- [ ] Be ready to intervene if needed
 
 ---
 
 ## Notes
-- Debug infrastructure is now production-ready
-- All planned Phase 1 features complete
-- Ready to move to Phase 2 (party tracker) or continue with sensor tuning
-- Modular architecture makes adding features fast and safe
 
+- **Focus**: Party-ready interface, not perfect sensors
+- **Aesthetic**: Unreliable narrator is the goal, not bug-free operation
+- **Timeline**: 3 days is tight but doable with focused effort
+- **Testing**: Must test with actual hardware early and often
+- **Backup**: Always have a fallback plan
+
+**The machine whispers what it hears, even when it's not sure what it heard.** 🎭
