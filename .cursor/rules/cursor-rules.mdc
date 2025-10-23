@@ -6,10 +6,11 @@ alwaysApply: true
 # Cursor Rules for Whispering Machine
 
 ## Pre-Development Checklist
-- Always read `docs/ARCHITECTURE.md`, `docs/TICKETS.md`, `docs/AGENT_MEMORY.md`, and `docs/PI_HUB_DEPLOYMENT.md` before proposing changes
+- Always read `docs/ARCHITECTURE.md`, `docs/TICKETS.md`, `docs/AGENT_MEMORY.md` before proposing changes
 - Check existing code patterns in `services/`, `firmware/` before implementing
 - Review MQTT schemas in `schemas/` directory for payload validation
-- **CRITICAL**: All services now run on Raspberry Pi 5, not unRAID (see PI_HUB_DEPLOYMENT.md)
+- **🚨 CRITICAL**: Development environment is unRAID - ALL testing must run in Docker containers
+- **🚨 CRITICAL**: Production deployment is MacBook Pro hub - all services run locally on MacBook
 
 ## Code Standards
 - **Python**: 3.10, Google style, line length 88, use type hints + docstrings
@@ -18,11 +19,12 @@ alwaysApply: true
 - **Logging**: Use structured logs to stdout, include context and timestamps
 
 ## Architecture Constraints
-- **Deployment**: All services run on Raspberry Pi 5 hub (MQTT, Aggregator, UI, Audio Bridge)
-- **Privacy**: ESP32 nodes publish features only; Pi hub captures short audio clips for transcription
+- **Development**: unRAID server with Docker containers for all services and testing
+- **Production**: MacBook Pro hub running all services locally (MQTT, Aggregator, UI, Audio Bridge, LLM Agent)
+- **Privacy**: ESP32 nodes publish features only; MacBook captures audio for transcription
 - **Networking**: 
-  - ESP32 nodes connect to Pi MQTT broker at `192.168.8.x:1883`
-  - Pi uses Tailscale to reach unRAID faster-whisper service
+  - ESP32 nodes connect to MacBook MQTT broker at `192.168.8.x:1883`
+  - MacBook uses Tailscale to reach unRAID faster-whisper service
   - Use service DNS + port 1883 inside compose; host port mappings for LAN access
 - **MQTT Topics**: Follow `party/<house>/<node>/<domain>/<signal>` pattern
 - **Message Format**: Small JSON with stable keys and unix `ts_ms` timestamp
@@ -47,22 +49,30 @@ alwaysApply: true
 - Pick a single ticket from `docs/TICKETS.md` and restate acceptance criteria
 - Propose minimal plan with file deltas before implementing
 - Keep PRs small and focused; test locally with `./dev.sh up`
+- **🚨 CRITICAL**: ALL testing must use Docker containers - use `./run_tests_docker.sh`
 - Update `docs/AGENT_MEMORY.md` with any new rules or gotchas discovered
 - Mark tickets as done in `docs/TICKETS.md` with commit hash
 
 ## Testing Requirements
-- Test MQTT message flows with `mosquitto_sub` and `mosquitto_pub`
+- **🚨 CRITICAL**: ALL testing runs in Docker containers on unRAID - NO direct Python execution
+- Use `./run_tests_docker.sh` for comprehensive testing
+- Test MQTT message flows with `mosquitto_sub` and `mosquitto_pub` inside containers
 - Verify UI updates with screenshots/GIFs for visual changes
 - Check service recovery after broker restarts
 - Validate feature behavior with actual sensor inputs
+- Run unit tests: `docker run --rm -v $(pwd)/services/aggregator:/app infra-aggregator python test_multi_node.py`
 
 ## Common Pitfalls (from Agent Memory)
+- **🚨 unRAID Constraint**: NEVER run Python directly - always use Docker containers
 - **Paho MQTT v2**: Use 5-arg callback signature `(client, userdata, flags, reason_code, properties=None)`
 - **Port Usage**: Inside compose use service DNS + 1883, not host port 1884
 - **Message Validation**: Always validate MQTT payloads with Pydantic models
 - **Error Handling**: Services must gracefully handle broker disconnections and reconnections
+- **Testing**: Use `docker run` commands for all testing - no direct Python execution
 
 ## Don'ts
+- **🚨 NEVER**: Run Python directly on unRAID - always use Docker containers
+- **🚨 NEVER**: Assume direct command execution works - always containerize
 - Don't change MQTT shapes without updating `schemas/` and `ARCHITECTURE.md`
 - Don't add heavy dependencies unless justified in PR description
 - Don't implement features not listed in tickets without discussion

@@ -47,6 +47,22 @@
 - **Links**: `firmware/wm_node/src/topics.h`
 - **Tags**: `#esp32` `#mqtt` `#topics` `#aggregator`
 
+### 2025-01-27: unRAID Development Environment Constraints
+- **What Happened**: Multiple attempts to run Python directly on unRAID failed with "command not found" errors
+- **Root Cause**: unRAID is a NAS OS with limited Python installation - all development must use Docker containers
+- **Rule/Lesson**: **🚨 CRITICAL: NEVER run Python directly on unRAID**. Always use Docker containers for ALL testing, development, and execution. Use `./run_tests_docker.sh` for testing, `docker run` commands for individual service testing
+- **Impact**: Prevents development workflow failures, ensures consistent testing environment
+- **Links**: `test_suite.py`, `run_tests_docker.sh`
+- **Tags**: `#unraid` `#docker` `#testing` `#development`
+
+### 2025-01-27: MacBook Production Architecture
+- **What Happened**: Architecture shifted from Raspberry Pi to MacBook Pro as the central hub
+- **Root Cause**: Need for self-contained party unit with built-in audio capture and touchscreen support
+- **Rule/Lesson**: **Production deployment is MacBook Pro hub** running all services locally (MQTT, Aggregator, UI, Audio Bridge, LLM Agent). Development remains on unRAID with Docker containers
+- **Impact**: Simplified deployment, better performance, integrated audio capture
+- **Links**: `macbook/compose.yml`, `docs/ARCHITECTURE.md`
+- **Tags**: `#macbook` `#architecture` `#production` `#deployment`
+
 ## Memory Categories
 
 ### MQTT Patterns
@@ -55,9 +71,12 @@
 - Validation: Use Pydantic models for all payloads
 
 ### Docker & Infrastructure
+- **🚨 CRITICAL**: Development on unRAID - ALL testing/execution must use Docker containers
 - Service communication: Use DNS names within compose
 - Port mapping: Host ports only for external tools
 - Development: `docker compose -f infra/docker-compose.yml up -d`
+- Testing: `./run_tests_docker.sh` for comprehensive testing
+- Individual tests: `docker run --rm -v $(pwd)/services/aggregator:/app infra-aggregator python test_multi_node.py`
 
 ### External Services
 - **Whisper**: faster-whisper on UnRAID (port 10300), managed outside this repo
