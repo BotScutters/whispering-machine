@@ -15,6 +15,8 @@ import orjson
 import paho.mqtt.client as mqtt
 from pydantic import BaseModel
 
+from robust_data_processor import DataProcessor, ErrorRecoveryManager
+
 HOUSE_ID = os.getenv("HOUSE_ID", "houseA")
 BROKER_HOST = os.getenv("BROKER_HOST", "mosquitto")
 BROKER_PORT = int(os.getenv("BROKER_PORT", "1883"))
@@ -196,6 +198,10 @@ state: Dict[str, Any] = {
 # Multi-node manager
 node_manager = MultiNodeManager(HOUSE_ID)
 
+# Robust data processing
+data_processor = DataProcessor()
+error_recovery_manager = ErrorRecoveryManager()
+
 
 def on_connect(client, userdata, flags, reason_code, properties=None):
     """MQTT connection callback"""
@@ -237,30 +243,50 @@ def on_message(client, userdata, msg):
         print(f"Failed to update data for node {node_id}")
         return
     
-    # Process specific message types
+    # Process specific message types with robust data processing
     if signal == "features" and domain == "audio":
-        try:
-            af = AudioFeatures(**data)
-            state["noise"]["rms"] = af.rms
-            state["noise"]["zcr"] = af.zcr
-            state["noise"]["low"] = af.low
-            state["noise"]["mid"] = af.mid
-            state["noise"]["high"] = af.high
-            state["noise"]["ts_ms"] = af.ts_ms
-        except Exception:
-            pass
+        result = data_processor.process_audio_features(data, node_id)
+        if result.is_valid and result.sanitized_data:
+            af = result.sanitized_data
+            state["noise"]["rms"] = af["rms"]
+            state["noise"]["zcr"] = af["zcr"]
+            state["noise"]["low"] = af["low"]
+            state["noise"]["mid"] = af["mid"]
+            state["noise"]["high"] = af["high"]
+            state["noise"]["ts_ms"] = af["ts_ms"]
+        elif not result.is_valid:
+            # Attempt recovery
+            recovered_data = error_recovery_manager.attempt_recovery(node_id, "audio", data)
+            if recovered_data:
+                af = recovered_data
+                state["noise"]["rms"] = af["rms"]
+                state["noise"]["zcr"] = af["zcr"]
+                state["noise"]["low"] = af["low"]
+                state["noise"]["mid"] = af["mid"]
+                state["noise"]["high"] = af["high"]
+                state["noise"]["ts_ms"] = af["ts_ms"]
     
     elif signal == "state" and domain == "occupancy":
-        try:
-            oc = Occupancy(**data)
+        result = data_processor.process_occupancy(data, node_id)
+        if result.is_valid and result.sanitized_data:
+            oc = result.sanitized_data
             state["rooms"][node_id] = {
-                "occupied": bool(oc.occupied),
-                "transitions": oc.transitions,
-                "activity": oc.activity,
-                "ts_ms": oc.ts_ms
+                "occupied": bool(oc["occupied"]),
+                "transitions": oc["transitions"],
+                "activity": oc["activity"],
+                "ts_ms": oc["ts_ms"]
             }
-        except Exception:
-            pass
+        elif not result.is_valid:
+            # Attempt recovery
+            recovered_data = error_recovery_manager.attempt_recovery(node_id, "occupancy", data)
+            if recovered_data:
+                oc = recovered_data
+                state["rooms"][node_id] = {
+                    "occupied": bool(oc["occupied"]),
+                    "transitions": oc["transitions"],
+                    "activity": oc["activity"],
+                    "ts_ms": oc["ts_ms"]
+                }
     
     elif signal == "vote" and domain == "poll":
         btn = str(data.get("btn", "unknown"))
