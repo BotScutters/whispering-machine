@@ -34,8 +34,10 @@ ui_state: dict[str, Any] = {
 }
 _subscribers: set[WebSocket] = set()
 _debug_subscribers: set[WebSocket] = set()
+_party_subscribers: set[WebSocket] = set()
 _queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
 _debug_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
+_party_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
 _loop: asyncio.AbstractEventLoop | None = None
 
 
@@ -54,10 +56,19 @@ def on_message(client, userdata, msg):
     loop: asyncio.AbstractEventLoop = userdata["loop"]
     queue: asyncio.Queue = userdata["queue"]
     debug_queue: asyncio.Queue = userdata["debug_queue"]
+    party_queue: asyncio.Queue = userdata["party_queue"]
     
     # Route messages based on topic
     if msg.topic == STATE_TOPIC:
         loop.call_soon_threadsafe(queue.put_nowait, data)
+    elif msg.topic.startswith("party/") and ("transcript" in msg.topic or "observation" in msg.topic):
+        # Party-specific messages (transcripts, observations)
+        party_data = {
+            "topic": msg.topic,
+            "payload": data,
+            "timestamp": userdata["timestamp"]()
+        }
+        loop.call_soon_threadsafe(party_queue.put_nowait, party_data)
     else:
         # Raw MQTT message for debugging
         debug_data = {
@@ -82,6 +93,7 @@ async def startup():
                 "loop": _loop, 
                 "queue": _queue, 
                 "debug_queue": _debug_queue,
+                "party_queue": _party_queue,
                 "timestamp": lambda: int(time.time() * 1000)
             },
         )
@@ -117,8 +129,20 @@ async def startup():
                     dead.add(ws)
             _debug_subscribers.difference_update(dead)
 
+    async def party_fanout():
+        while True:
+            party_data = await _party_queue.get()
+            dead = set()
+            for ws in list(_party_subscribers):
+                try:
+                    await ws.send_json(party_data)
+                except Exception:
+                    dead.add(ws)
+            _party_subscribers.difference_update(dead)
+
     asyncio.create_task(fanout())
     asyncio.create_task(debug_fanout())
+    asyncio.create_task(party_fanout())
 
 
 @app.get("/")
@@ -138,6 +162,13 @@ def debug():
 def debug_simple():
     """Simple debug UI without Chart.js (fallback for troubleshooting)."""
     with open("static/debug-simple.html", encoding="utf-8") as f:
+        return HTMLResponse(f.read())
+
+
+@app.get("/party")
+def party():
+    """Touchscreen-optimized party interface with unreliable narrator aesthetic."""
+    with open("static/party.html", encoding="utf-8") as f:
         return HTMLResponse(f.read())
 
 
@@ -162,6 +193,17 @@ async def ws_debug_endpoint(ws: WebSocket):
             await asyncio.sleep(3600)
     finally:
         _debug_subscribers.discard(ws)
+
+
+@app.websocket("/ws/party")
+async def ws_party_endpoint(ws: WebSocket):
+    await ws.accept()
+    _party_subscribers.add(ws)
+    try:
+        while True:
+            await asyncio.sleep(3600)
+    finally:
+        _party_subscribers.discard(ws)
 
 
 if __name__ == "__main__":

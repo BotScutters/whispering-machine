@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Whispering Machine - Party Mode</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #00ff00;
+            overflow: hidden;
+            height: 100vh;
+            cursor: none;
+        }
+
+        /* Glitch effects */
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(-100vh); }
+            100% { transform: translateY(100vh); }
+        }
+
+        .glitch {
+            animation: glitch 0.3s infinite;
+        }
+
+        .flicker {
+            animation: flicker 2s infinite;
+        }
+
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00ff00, transparent);
+            animation: scanline 3s linear infinite;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        /* Main layout */
+        .party-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto 1fr auto;
+            height: 100vh;
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        /* Header */
+        .party-header {
+            grid-column: 1 / -1;
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #00ff00;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .party-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.3), transparent);
+            animation: scanline 4s linear infinite;
+        }
+
+        .party-title {
+            font-size: 2rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px #00ff00;
+            margin-bottom: 0.5rem;
+        }
+
+        .party-subtitle {
+            font-size: 1rem;
+            opacity: 0.8;
+            font-style: italic;
+        }
+
+        /* Status indicators */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #00ff00;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            background: #ff0000;
+        }
+
+        .status-dot.active {
+            background: #00ff00;
+            box-shadow: 0 0 10px #00ff00;
+        }
+
+        /* Main content areas */
+        .transcript-panel {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ff00;
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .transcript-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 255, 0, 0.03) 2px,
+                rgba(0, 255, 0, 0.03) 4px
+            );
+            pointer-events: none;
+        }
+
+        .transcript-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-align: center;
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        .transcript-content {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            max-height: calc(100% - 3rem);
+            overflow-y: auto;
+        }
+
+        .transcript-item {
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(0, 255, 0, 0.05);
+            border-left: 3px solid #00ff00;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .transcript-timestamp {
+            font-size: 0.7rem;
+            opacity: 0.6;
+            margin-bottom: 0.25rem;
+        }
+
+        .transcript-text {
+            font-style: italic;
+        }
+
+        .observation-panel {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #ff6600;
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .observation-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(255, 102, 0, 0.03) 2px,
+                rgba(255, 102, 0, 0.03) 4px
+            );
+            pointer-events: none;
+        }
+
+        .observation-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-align: center;
+            color: #ff6600;
+            text-shadow: 0 0 5px #ff6600;
+        }
+
+        .observation-content {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            max-height: calc(100% - 3rem);
+            overflow-y: auto;
+        }
+
+        .observation-item {
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(255, 102, 0, 0.05);
+            border-left: 3px solid #ff6600;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .observation-timestamp {
+            font-size: 0.7rem;
+            opacity: 0.6;
+            margin-bottom: 0.25rem;
+        }
+
+        .observation-text {
+            font-weight: bold;
+        }
+
+        /* Sensor visualization */
+        .sensor-panel {
+            grid-column: 1 / -1;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #0066ff;
+            border-radius: 8px;
+            padding: 1rem;
+            position: relative;
+        }
+
+        .sensor-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 102, 255, 0.03) 2px,
+                rgba(0, 102, 255, 0.03) 4px
+            );
+            pointer-events: none;
+        }
+
+        .sensor-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-align: center;
+            color: #0066ff;
+            text-shadow: 0 0 5px #0066ff;
+        }
+
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .sensor-card {
+            background: rgba(0, 102, 255, 0.05);
+            border: 1px solid #0066ff;
+            border-radius: 4px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .sensor-name {
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #0066ff;
+        }
+
+        .sensor-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+
+        .sensor-status {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .sensor-status.active {
+            color: #00ff00;
+        }
+
+        .sensor-status.offline {
+            color: #ff0000;
+        }
+
+        .sensor-status.stale {
+            color: #ffaa00;
+        }
+
+        /* Chart container */
+        .chart-container {
+            position: relative;
+            height: 200px;
+            margin-top: 1rem;
+        }
+
+        /* Footer */
+        .party-footer {
+            grid-column: 1 / -1;
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #00ff00;
+            border-radius: 8px;
+            padding: 0.5rem;
+            text-align: center;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* Touch interactions */
+        .touch-hint {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid #00ff00;
+            border-radius: 4px;
+            padding: 0.5rem;
+            font-size: 0.8rem;
+            opacity: 0.6;
+            z-index: 1000;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .party-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto auto auto;
+            }
+            
+            .transcript-panel,
+            .observation-panel {
+                grid-column: 1;
+            }
+            
+            .party-title {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Error states */
+        .error-state {
+            background: rgba(255, 0, 0, 0.1);
+            border-color: #ff0000;
+            color: #ff0000;
+        }
+
+        .warning-state {
+            background: rgba(255, 170, 0, 0.1);
+            border-color: #ffaa00;
+            color: #ffaa00;
+        }
+
+        /* Loading states */
+        .loading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: flicker 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Scanline effect -->
+    <div class="scanline"></div>
+
+    <!-- Touch hint -->
+    <div class="touch-hint">Touch to interact</div>
+
+    <!-- Main container -->
+    <div class="party-container">
+        <!-- Header -->
+        <div class="party-header">
+            <div class="party-title glitch">WHISPERING MACHINE</div>
+            <div class="party-subtitle flicker">PARTY MODE - UNRELIABLE NARRATOR</div>
+            
+            <!-- Status indicators -->
+            <div class="status-grid">
+                <div class="status-indicator">
+                    <div class="status-dot" id="mqttStatus"></div>
+                    <span>MQTT</span>
+                </div>
+                <div class="status-indicator">
+                    <div class="status-dot" id="whisperStatus"></div>
+                    <span>WHISPER</span>
+                </div>
+                <div class="status-indicator">
+                    <div class="status-dot" id="llmStatus"></div>
+                    <span>LLM</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transcript Panel -->
+        <div class="transcript-panel">
+            <div class="transcript-title">LIVE TRANSCRIPTS</div>
+            <div class="transcript-content" id="transcriptContent">
+                <div class="transcript-item">
+                    <div class="transcript-timestamp">Waiting for audio...</div>
+                    <div class="transcript-text">The machine listens...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Observation Panel -->
+        <div class="observation-panel">
+            <div class="observation-title">AI OBSERVATIONS</div>
+            <div class="observation-content" id="observationContent">
+                <div class="observation-item">
+                    <div class="observation-timestamp">Initializing...</div>
+                    <div class="observation-text">The narrator awakens...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sensor Panel -->
+        <div class="sensor-panel">
+            <div class="sensor-title">SENSOR NETWORK</div>
+            <div class="sensor-grid" id="sensorGrid">
+                <div class="sensor-card">
+                    <div class="sensor-name">NODE 1</div>
+                    <div class="sensor-value" id="node1Value">--</div>
+                    <div class="sensor-status offline" id="node1Status">OFFLINE</div>
+                </div>
+                <div class="sensor-card">
+                    <div class="sensor-name">NODE 2</div>
+                    <div class="sensor-value" id="node2Value">--</div>
+                    <div class="sensor-status offline" id="node2Status">OFFLINE</div>
+                </div>
+                <div class="sensor-card">
+                    <div class="sensor-name">NODE 3</div>
+                    <div class="sensor-value" id="node3Value">--</div>
+                    <div class="sensor-status offline" id="node3Status">OFFLINE</div>
+                </div>
+            </div>
+            
+            <!-- Audio visualization -->
+            <div class="chart-container">
+                <canvas id="audioChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="party-footer">
+            <div>SYSTEM STATUS: <span id="systemStatus">INITIALIZING</span></div>
+            <div>NODES: <span id="activeNodes">0/3</span> | UPTIME: <span id="uptime">00:00:00</span></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { PartyApp } from './js/pages/party-app.js';
+
+        // Initialize Chart.js for audio visualization
+        const ctx = document.getElementById('audioChart').getContext('2d');
+        const audioChart = new Chart(ctx, {
+            type: 'line',
+            data: { 
+                datasets: [{
+                    label: 'Audio RMS',
+                    data: [],
+                    borderColor: '#00ff00',
+                    backgroundColor: 'rgba(0, 255, 0, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 0 },
+                interaction: { intersect: false },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'second',
+                            displayFormats: { second: 'HH:mm:ss' }
+                        },
+                        ticks: { color: '#00ff00', maxTicksLimit: 8 },
+                        grid: { color: 'rgba(0, 255, 0, 0.2)' }
+                    },
+                    y: {
+                        min: 0,
+                        max: 1,
+                        ticks: { color: '#00ff00', maxTicksLimit: 5 },
+                        grid: { color: 'rgba(0, 255, 0, 0.2)' }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // Initialize party application
+        const partyApp = new PartyApp();
+        window.partyApp = partyApp; // Expose for debugging
+        
+        partyApp.init(audioChart).catch(error => {
+            console.error('Failed to initialize party app:', error);
+            document.body.classList.add('error-state');
+        });
+
+        // Touch interaction handling
+        let touchStartTime = 0;
+        document.addEventListener('touchstart', (e) => {
+            touchStartTime = Date.now();
+        });
+
+        document.addEventListener('touchend', (e) => {
+            const touchDuration = Date.now() - touchStartTime;
+            if (touchDuration > 2000) { // Long press
+                partyApp.toggleDebugMode();
+            }
+        });
+
+        // Error handling
+        window.addEventListener('error', (ev) => {
+            console.error('Runtime error:', ev.error);
+            document.body.classList.add('error-state');
+        });
+
+        window.addEventListener('unhandledrejection', (ev) => {
+            console.error('Unhandled promise rejection:', ev.reason);
+            document.body.classList.add('error-state');
+        });
+    </script>
+</body>
+</html>
