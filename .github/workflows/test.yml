@@ -1,0 +1,104 @@
+name: Whispering Machine Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      mosquitto:
+        image: eclipse-mosquitto:2
+        ports:
+          - 1883:1883
+        options: >-
+          --health-cmd "mosquitto_pub -h localhost -t test -m healthcheck"
+          --health-interval 30s
+          --health-timeout 10s
+          --health-retries 3
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y docker.io docker-compose
+        sudo systemctl start docker
+        sudo usermod -aG docker $USER
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-test.txt
+    
+    - name: Build services
+      run: |
+        docker compose -f infra/docker-compose.yml build
+    
+    - name: Run test suite
+      run: |
+        python test_suite.py
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results
+        path: test_report.json
+    
+    - name: Comment PR with test results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          try {
+            const report = JSON.parse(fs.readFileSync('test_report.json', 'utf8'));
+            
+            let comment = '## 🧪 Test Results\n\n';
+            
+            // Unit tests
+            comment += '### Unit Tests\n';
+            Object.entries(report.unit_tests).forEach(([service, result]) => {
+              const status = result.passed ? '✅' : '❌';
+              comment += `- ${service}: ${status}\n`;
+            });
+            
+            // Integration tests
+            comment += '\n### Integration Tests\n';
+            Object.entries(report.integration_tests).forEach(([test, result]) => {
+              const status = result ? '✅' : '❌';
+              comment += `- ${test}: ${status}\n`;
+            });
+            
+            // Coverage
+            comment += '\n### Coverage\n';
+            Object.entries(report.coverage).forEach(([service, result]) => {
+              const status = result.coverage >= 80 ? '✅' : '❌';
+              comment += `- ${service}: ${result.coverage.toFixed(1)}% ${status}\n`;
+            });
+            
+            const overall = report.overall_success ? '✅ All tests passed!' : '❌ Some tests failed';
+            comment += `\n**Overall Result:** ${overall}`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+          } catch (error) {
+            console.log('Could not parse test results:', error);
+          }

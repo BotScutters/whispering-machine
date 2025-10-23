@@ -1,13 +1,58 @@
-[tool.black]
-line-length = 88
-target-version = ["py310"]
+# Test Configuration for Whispering Machine
 
-[tool.isort]
-profile = "black"
-line_length = 88
+[tool.pytest.ini_options]
+testpaths = ["services", "tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--verbose",
+    "--tb=short",
+    "--strict-markers",
+    "--disable-warnings",
+    "--cov=services",
+    "--cov-report=term-missing",
+    "--cov-report=html:htmlcov",
+    "--cov-report=xml:coverage.xml",
+    "--cov-fail-under=80"
+]
 
-[tool.ruff]
-line-length = 88
-select = ["E", "F", "I", "UP", "B", "C4"]
-ignore = ["E501"]
-target-version = "py310"
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests", 
+    "slow: Slow running tests",
+    "mqtt: MQTT related tests",
+    "ui: UI related tests",
+    "audio: Audio processing tests",
+    "llm: LLM agent tests"
+]
+
+[tool.coverage.run]
+source = ["services"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/env/*"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod"
+]
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.coverage.xml]
+output = "coverage.xml"
