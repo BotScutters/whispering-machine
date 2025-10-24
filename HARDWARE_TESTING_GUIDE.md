@@ -1,9 +1,9 @@
-# 🎯 Hardware Testing Guide - Windows Laptop + Waveshare Touchscreen
+# 🎯 Hardware Testing Guide - WSL2 + Windows Laptop + Waveshare Touchscreen
 
 ## 🚀 **Tomorrow's Mission: Get the Whispering Machine Running!**
 
 ### **Hardware Setup Checklist:**
-- [ ] Windows gaming laptop (5+ years old)
+- [ ] Windows gaming laptop (5+ years old) with WSL2
 - [ ] Waveshare 7" USB touchscreen
 - [ ] ESP32 nodes (x3) with INMP441 mics, PIR sensors, encoders, LED rings
 - [ ] USB cables and power supplies
@@ -13,12 +13,15 @@
 
 ## 📋 **Step-by-Step Hardware Testing Instructions**
 
-### **Phase 1: Windows Laptop Setup (30 minutes)**
+### **Phase 1: WSL2 + Windows Laptop Setup (30 minutes)**
 
 #### **1.1 Prerequisites Check**
 ```cmd
 # Check Windows version
 winver
+
+# Check WSL2 installation
+wsl --list --verbose
 
 # Check if Docker Desktop is installed
 docker --version
@@ -26,28 +29,29 @@ docker compose version
 
 # If Docker not installed:
 # Download from: https://www.docker.com/products/docker-desktop/
-# Install Docker Desktop for Windows
+# Install Docker Desktop for Windows (enables WSL2 integration)
 ```
 
-#### **1.2 Clone Repository**
-```cmd
+#### **1.2 Clone Repository in WSL2**
+```bash
+# Open WSL2 terminal (Ubuntu or your preferred distro)
 # Clone the repository
 git clone https://github.com/YOUR_USERNAME/whispering-machine.git
 cd whispering-machine
 
 # Check that all files are present
-dir
-dir windows
-dir scripts
+ls -la
+ls -la wsl2/
+ls -la scripts/
 ```
 
 #### **1.3 Environment Configuration**
-```cmd
+```bash
 # Copy environment template
-copy windows\env.example windows\.env
+cp wsl2/env.example wsl2/.env
 
 # Edit the .env file with your settings
-notepad windows\.env
+nano wsl2/.env
 ```
 
 **Required .env settings:**
@@ -93,39 +97,39 @@ devmgmt.msc
 powershell -Command "Get-WmiObject -Class Win32_VideoController | Select-Object Name, VideoModeDescription"
 ```
 
-#### **2.4 Touchscreen Calibration**
-```cmd
-# Run the party mode script (this will create calibration)
-scripts\start_windows_party_mode.bat
+#### **2.4 WSL2 Touchscreen Integration**
+```bash
+# Run the WSL2 party mode script (this will create calibration)
+./scripts/start_wsl2_party_mode.sh
 
 # Check calibration file was created
-type "%USERPROFILE%\.whispering_machine\windows_touch_calibration.json"
+cat ~/.whispering_machine/wsl2_touch_calibration.json
 ```
 
-### **Phase 3: Service Deployment (30 minutes)**
+### **Phase 3: WSL2 Service Deployment (30 minutes)**
 
 #### **3.1 Start Services**
-```cmd
-# Start all services
-docker compose -f windows/compose.yml up -d
+```bash
+# Start all services using WSL2 compose
+docker compose -f wsl2/compose.yml up -d
 
 # Check service status
-docker compose -f windows/compose.yml ps
+docker compose -f wsl2/compose.yml ps
 
 # View logs if needed
-docker compose -f windows/compose.yml logs
+docker compose -f wsl2/compose.yml logs
 ```
 
 #### **3.2 Verify Services**
-```cmd
+```bash
 # Check MQTT broker
 curl http://localhost:1883
 
 # Check UI service
-start http://localhost:8000/party
+curl http://localhost:8000/health
 
 # Check service health
-docker compose -f windows/compose.yml ps
+docker compose -f wsl2/compose.yml ps
 ```
 
 ### **Phase 4: ESP32 Node Testing (60 minutes)**
@@ -160,10 +164,11 @@ pio device monitor
 ```
 
 #### **4.3 Test ESP32 Connectivity**
-```cmd
-# On Windows laptop, monitor MQTT messages
+```bash
+# On WSL2, monitor MQTT messages
 # Install mosquitto client tools
-# Download from: https://mosquitto.org/download/
+sudo apt-get update
+sudo apt-get install mosquitto-clients
 
 # Subscribe to all messages
 mosquitto_sub -h localhost -t "party/+/+/+/+"
@@ -186,12 +191,12 @@ mosquitto_sub -h localhost -t "party/+/+/+/+"
    - **Multi-Touch**: Use two fingers
 
 #### **5.2 Audio Capture Test**
-```cmd
-# Check audio devices
-powershell -Command "Get-WmiObject -Class Win32_SoundDevice"
+```bash
+# Check audio devices via WSL2
+powershell.exe -Command "Get-WmiObject -Class Win32_SoundDevice"
 
 # Test audio bridge service
-docker logs windows_audio_bridge
+docker logs wsl2_audio_bridge
 
 # Should see audio capture messages
 ```
@@ -203,9 +208,9 @@ docker logs windows_audio_bridge
 4. **LED Rings**: Should respond to audio/occupancy
 
 #### **5.4 LLM Agent Test**
-```cmd
+```bash
 # Check LLM agent logs
-docker logs windows_llm_agent
+docker logs wsl2_llm_agent
 
 # Should see observation generation
 # Check MQTT for observation messages
@@ -235,16 +240,18 @@ devmgmt.msc
 ```
 
 #### **Services Won't Start**
-```cmd
+```bash
 # Check Docker Desktop is running
 docker info
 
 # Check port conflicts
-netstat -an | findstr :8000
-netstat -an | findstr :1883
+netstat -an | grep :8000
+netstat -an | grep :1883
 
 # Restart Docker Desktop
-# Restart Windows if needed
+# Restart WSL2 if needed
+wsl --shutdown
+wsl
 ```
 
 #### **ESP32 Nodes Not Connecting**
@@ -265,12 +272,12 @@ pio device monitor
 ```
 
 #### **Audio Not Capturing**
-```cmd
-# Check audio devices
-powershell -Command "Get-WmiObject -Class Win32_SoundDevice"
+```bash
+# Check audio devices via WSL2
+powershell.exe -Command "Get-WmiObject -Class Win32_SoundDevice"
 
 # Check audio bridge logs
-docker logs windows_audio_bridge
+docker logs wsl2_audio_bridge
 
 # Common issues:
 # - No microphone detected
@@ -288,11 +295,11 @@ docker logs windows_audio_bridge
 - [ ] Touchscreen responds to touch input
 - [ ] External display shows party interface
 
-### **Service Deployment:**
-- [ ] All Docker services start successfully
+### **WSL2 Service Deployment:**
+- [ ] All Docker services start successfully in WSL2
 - [ ] MQTT broker accessible on port 1883
 - [ ] Party UI accessible on port 8000
-- [ ] Audio bridge capturing audio
+- [ ] Audio bridge capturing audio via WSL2
 - [ ] LLM agent generating observations
 
 ### **ESP32 Integration:**
@@ -320,7 +327,7 @@ docker logs windows_audio_bridge
 ## 🎉 **Party Mode Activation**
 
 ### **Final Steps:**
-1. **Run party mode script**: `scripts\start_windows_party_mode.bat`
+1. **Run WSL2 party mode script**: `./scripts/start_wsl2_party_mode.sh`
 2. **Access party interface**: `http://localhost:8000/party`
 3. **Test all interactions**: Touch, sensors, audio, easter eggs
 4. **Verify robustness**: Disconnect/reconnect ESP32 nodes
@@ -339,10 +346,10 @@ docker logs windows_audio_bridge
 ## 🚨 **Emergency Procedures**
 
 ### **If Everything Breaks:**
-1. **Stop all services**: `docker compose -f windows/compose.yml down`
+1. **Stop all services**: `docker compose -f wsl2/compose.yml down`
 2. **Restart Docker Desktop**
-3. **Restart Windows**
-4. **Re-run setup**: `scripts\start_windows_party_mode.bat`
+3. **Restart WSL2**: `wsl --shutdown` then `wsl`
+4. **Re-run setup**: `./scripts/start_wsl2_party_mode.sh`
 
 ### **If Touchscreen Stops Working:**
 1. **Disconnect USB cable**
@@ -374,10 +381,10 @@ Once all tests pass, you'll have a magical, robust, and delightful party experie
 ## 📞 **Support**
 
 If you run into issues:
-1. **Check logs**: `docker compose -f windows/compose.yml logs`
-2. **Check device manager**: `devmgmt.msc`
+1. **Check logs**: `docker compose -f wsl2/compose.yml logs`
+2. **Check device manager**: `devmgmt.msc` (Windows)
 3. **Check network**: `ipconfig` and `ping` tests
 4. **Restart services**: Stop and start Docker containers
-5. **Restart Windows**: Sometimes a reboot fixes everything
+5. **Restart WSL2**: `wsl --shutdown` then `wsl`
 
 **Good luck with the hardware testing! The software is solid - now let's make it dance with the hardware!** 🎉

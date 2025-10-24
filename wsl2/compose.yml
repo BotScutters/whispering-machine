@@ -1,0 +1,87 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: wsl2_mosquitto
+    ports:
+      - "1883:1883"
+      - "1884:1884"
+    volumes:
+      - ./infra/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    healthcheck:
+      test: ["CMD", "mosquitto_pub", "-h", "localhost", "-t", "test", "-m", "healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  aggregator:
+    build: ../services/aggregator
+    container_name: wsl2_aggregator
+    env_file: ./.env
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  ui:
+    build: ../services/ui
+    container_name: wsl2_ui
+    env_file: ./.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  audio_bridge:
+    build: ../services/audio_bridge
+    container_name: wsl2_audio_bridge
+    env_file: ./.env
+    network_mode: host # Required for PyAudio to access host audio devices
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  llm_agent:
+    build: ../services/llm_agent
+    container_name: wsl2_llm_agent
+    env_file: ./.env
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  wsl2_display_manager:
+    build: ../services/wsl2_display_manager
+    container_name: wsl2_display_manager
+    env_file: ./.env
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    restart: unless-stopped
+
+networks:
+  default:
+    name: whispering-machine-wsl2
