@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Whispering Machine - Party Mode</title>
+    <title>Whispering Machine</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <style>
@@ -14,509 +14,295 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        /* Disable browser gestures and context menus */
         body {
-            font-family: 'Courier New', monospace;
-            background: #000;
-            color: #00ff00;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
             overflow: hidden;
             height: 100vh;
             cursor: none;
+            /* Disable browser gestures */
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            /* Disable context menu */
+            -webkit-context-menu: none;
+            -moz-context-menu: none;
+            context-menu: none;
         }
 
-        /* Glitch effects */
-        @keyframes glitch {
-            0% { transform: translate(0); }
-            20% { transform: translate(-2px, 2px); }
-            40% { transform: translate(-2px, -2px); }
-            60% { transform: translate(2px, 2px); }
-            80% { transform: translate(2px, -2px); }
-            100% { transform: translate(0); }
+        /* Disable all browser interactions */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
 
-        @keyframes flicker {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
-
-        @keyframes scanline {
-            0% { transform: translateY(-100vh); }
-            100% { transform: translateY(100vh); }
-        }
-
-        .glitch {
-            animation: glitch 0.3s infinite;
-        }
-
-        .flicker {
-            animation: flicker 2s infinite;
-        }
-
-        .scanline {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #00ff00, transparent);
-            animation: scanline 3s linear infinite;
-            z-index: 1000;
-            pointer-events: none;
-        }
-
-        /* Main layout */
+        /* Sophisticated layout for 1024x600 */
         .party-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            grid-template-rows: auto 1fr auto;
+            grid-template-rows: 1fr auto;
             height: 100vh;
             gap: 1rem;
             padding: 1rem;
         }
 
-        /* Header */
-        .party-header {
-            grid-column: 1 / -1;
-            background: rgba(0, 255, 0, 0.1);
-            border: 2px solid #00ff00;
+        /* Main content areas */
+        .content-panel {
+            background: rgba(26, 26, 26, 0.8);
+            border: 1px solid #333;
             border-radius: 8px;
             padding: 1rem;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
         }
 
-        .party-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.3), transparent);
-            animation: scanline 4s linear infinite;
+        .left-panel {
+            grid-column: 1;
+            grid-row: 1;
         }
 
-        .party-title {
-            font-size: 2rem;
-            font-weight: bold;
-            text-shadow: 0 0 10px #00ff00;
+        .right-panel {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        .status-bar {
+            grid-column: 1 / -1;
+            grid-row: 2;
+            background: rgba(26, 26, 26, 0.9);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* Subtle animations */
+        @keyframes subtle-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        @keyframes gentle-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 136, 0.1); }
+            50% { box-shadow: 0 0 15px rgba(0, 255, 136, 0.2); }
+        }
+
+        .active-indicator {
+            animation: subtle-pulse 3s infinite;
+        }
+
+        .content-panel:hover {
+            animation: gentle-glow 2s infinite;
+        }
+
+        /* Typography */
+        .content-title {
+            font-size: 1.2rem;
+            color: #00ff88;
+            margin-bottom: 1rem;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+        }
+
+        .content-text {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: #ccc;
             margin-bottom: 0.5rem;
         }
 
-        .party-subtitle {
-            font-size: 1rem;
-            opacity: 0.8;
-            font-style: italic;
+        .timestamp {
+            font-size: 0.7rem;
+            color: #666;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Chart styling */
+        .chart-container {
+            flex: 1;
+            position: relative;
+            min-height: 200px;
         }
 
         /* Status indicators */
-        .status-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-
-        .status-indicator {
+        .status-indicators {
             display: flex;
+            gap: 1rem;
             align-items: center;
-            justify-content: center;
-            padding: 0.5rem;
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid #00ff00;
-            border-radius: 4px;
-            font-size: 0.8rem;
         }
 
         .status-dot {
-            width: 12px;
-            height: 12px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            margin-right: 0.5rem;
-            background: #ff0000;
+            background: #333;
+            transition: background-color 0.3s ease;
         }
 
-        .status-dot.active {
-            background: #00ff00;
-            box-shadow: 0 0 10px #00ff00;
+        .status-dot.connected {
+            background: #00ff88;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
         }
 
-        /* Main content areas */
-        .transcript-panel {
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #00ff00;
-            border-radius: 8px;
-            padding: 1rem;
-            overflow-y: auto;
-            position: relative;
+        .status-dot.disconnected {
+            background: #ff4444;
         }
 
-        .transcript-panel::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 2px,
-                rgba(0, 255, 0, 0.03) 2px,
-                rgba(0, 255, 0, 0.03) 4px
-            );
+        /* Touch interaction feedback */
+        .touch-feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            opacity: 0;
             pointer-events: none;
+            transition: opacity 0.3s ease;
         }
 
-        .transcript-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-            text-align: center;
-            text-shadow: 0 0 5px #00ff00;
+        .touch-feedback.active {
+            opacity: 1;
         }
 
-        .transcript-content {
-            font-size: 0.9rem;
-            line-height: 1.4;
-            max-height: calc(100% - 3rem);
-            overflow-y: auto;
-        }
-
-        .transcript-item {
-            margin-bottom: 0.5rem;
-            padding: 0.5rem;
-            background: rgba(0, 255, 0, 0.05);
-            border-left: 3px solid #00ff00;
-            border-radius: 0 4px 4px 0;
-        }
-
-        .transcript-timestamp {
-            font-size: 0.7rem;
-            opacity: 0.6;
-            margin-bottom: 0.25rem;
-        }
-
-        .transcript-text {
-            font-style: italic;
-        }
-
-        .observation-panel {
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #ff6600;
-            border-radius: 8px;
-            padding: 1rem;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        .observation-panel::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 2px,
-                rgba(255, 102, 0, 0.03) 2px,
-                rgba(255, 102, 0, 0.03) 4px
-            );
-            pointer-events: none;
-        }
-
-        .observation-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-            text-align: center;
-            color: #ff6600;
-            text-shadow: 0 0 5px #ff6600;
-        }
-
-        .observation-content {
-            font-size: 0.9rem;
-            line-height: 1.4;
-            max-height: calc(100% - 3rem);
-            overflow-y: auto;
-        }
-
-        .observation-item {
-            margin-bottom: 0.5rem;
-            padding: 0.5rem;
-            background: rgba(255, 102, 0, 0.05);
-            border-left: 3px solid #ff6600;
-            border-radius: 0 4px 4px 0;
-        }
-
-        .observation-timestamp {
-            font-size: 0.7rem;
-            opacity: 0.6;
-            margin-bottom: 0.25rem;
-        }
-
-        .observation-text {
-            font-weight: bold;
-        }
-
-        /* Sensor visualization */
-        .sensor-panel {
-            grid-column: 1 / -1;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #0066ff;
-            border-radius: 8px;
-            padding: 1rem;
-            position: relative;
-        }
-
-        .sensor-panel::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 2px,
-                rgba(0, 102, 255, 0.03) 2px,
-                rgba(0, 102, 255, 0.03) 4px
-            );
-            pointer-events: none;
-        }
-
-        .sensor-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-            text-align: center;
-            color: #0066ff;
-            text-shadow: 0 0 5px #0066ff;
-        }
-
-        .sensor-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-        }
-
-        .sensor-card {
-            background: rgba(0, 102, 255, 0.05);
-            border: 1px solid #0066ff;
-            border-radius: 4px;
-            padding: 1rem;
-            text-align: center;
-        }
-
-        .sensor-name {
-            font-size: 0.9rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-            color: #0066ff;
-        }
-
-        .sensor-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 0.25rem;
-        }
-
-        .sensor-status {
-            font-size: 0.8rem;
-            opacity: 0.8;
-        }
-
-        .sensor-status.active {
-            color: #00ff00;
-        }
-
-        .sensor-status.offline {
-            color: #ff0000;
-        }
-
-        .sensor-status.stale {
-            color: #ffaa00;
-        }
-
-        /* Chart container */
-        .chart-container {
-            position: relative;
-            height: 200px;
-            margin-top: 1rem;
-        }
-
-        /* Footer */
-        .party-footer {
-            grid-column: 1 / -1;
-            background: rgba(0, 255, 0, 0.1);
-            border: 2px solid #00ff00;
-            border-radius: 8px;
-            padding: 0.5rem;
-            text-align: center;
-            font-size: 0.8rem;
-            opacity: 0.8;
-        }
-
-        /* Touch interactions */
-        .touch-hint {
+        /* Debug mode indicator */
+        .debug-indicator {
             position: fixed;
             bottom: 1rem;
             right: 1rem;
-            background: rgba(0, 255, 0, 0.2);
-            border: 1px solid #00ff00;
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid #ff4444;
             border-radius: 4px;
-            padding: 0.5rem;
-            font-size: 0.8rem;
-            opacity: 0.6;
-            z-index: 1000;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.7rem;
+            color: #ff4444;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
+        .debug-indicator.active {
+            opacity: 1;
+        }
+
+        /* Responsive adjustments for 1024x600 */
+        @media (max-width: 1024px) and (max-height: 600px) {
             .party-container {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto auto auto auto auto;
+                gap: 0.5rem;
+                padding: 0.5rem;
             }
             
-            .transcript-panel,
-            .observation-panel {
-                grid-column: 1;
+            .content-panel {
+                padding: 0.75rem;
             }
             
-            .party-title {
-                font-size: 1.5rem;
+            .content-title {
+                font-size: 1rem;
+                margin-bottom: 0.75rem;
             }
+            
+            .content-text {
+                font-size: 0.8rem;
+            }
+            
+            .chart-container {
+                min-height: 150px;
+            }
+        }
+
+        /* Subtle loading states */
+        .loading {
+            opacity: 0.5;
+            animation: subtle-pulse 2s infinite;
         }
 
         /* Error states */
         .error-state {
-            background: rgba(255, 0, 0, 0.1);
-            border-color: #ff0000;
-            color: #ff0000;
+            background: rgba(255, 68, 68, 0.1);
+            border-color: #ff4444;
         }
 
-        .warning-state {
-            background: rgba(255, 170, 0, 0.1);
-            border-color: #ffaa00;
-            color: #ffaa00;
-        }
-
-        /* Loading states */
-        .loading {
-            opacity: 0.5;
-            pointer-events: none;
-        }
-
-        .loading::after {
-            content: '...';
-            animation: flicker 1s infinite;
+        /* Hidden elements */
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <!-- Scanline effect -->
-    <div class="scanline"></div>
-
-    <!-- Touch hint -->
-    <div class="touch-hint">Touch to interact</div>
-
-    <!-- Main container -->
     <div class="party-container">
-        <!-- Header -->
-        <div class="party-header">
-            <div class="party-title glitch">WHISPERING MACHINE</div>
-            <div class="party-subtitle flicker">PARTY MODE - UNRELIABLE NARRATOR</div>
-            
-            <!-- Status indicators -->
-            <div class="status-grid">
-                <div class="status-indicator">
-                    <div class="status-dot" id="mqttStatus"></div>
-                    <span>MQTT</span>
-                </div>
-                <div class="status-indicator">
-                    <div class="status-dot" id="whisperStatus"></div>
-                    <span>WHISPER</span>
-                </div>
-                <div class="status-indicator">
-                    <div class="status-dot" id="llmStatus"></div>
-                    <span>LLM</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Transcript Panel -->
-        <div class="transcript-panel">
-            <div class="transcript-title">LIVE TRANSCRIPTS</div>
-            <div class="transcript-content" id="transcriptContent">
-                <div class="transcript-item">
-                    <div class="transcript-timestamp">Waiting for audio...</div>
-                    <div class="transcript-text">The machine listens...</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Observation Panel -->
-        <div class="observation-panel">
-            <div class="observation-title">AI OBSERVATIONS</div>
-            <div class="observation-content" id="observationContent">
-                <div class="observation-item">
-                    <div class="observation-timestamp">Initializing...</div>
-                    <div class="observation-text">The narrator awakens...</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sensor Panel -->
-        <div class="sensor-panel">
-            <div class="sensor-title">SENSOR NETWORK</div>
-            <div class="sensor-grid" id="sensorGrid">
-                <div class="sensor-card">
-                    <div class="sensor-name">NODE 1</div>
-                    <div class="sensor-value" id="node1Value">--</div>
-                    <div class="sensor-status offline" id="node1Status">OFFLINE</div>
-                </div>
-                <div class="sensor-card">
-                    <div class="sensor-name">NODE 2</div>
-                    <div class="sensor-value" id="node2Value">--</div>
-                    <div class="sensor-status offline" id="node2Status">OFFLINE</div>
-                </div>
-                <div class="sensor-card">
-                    <div class="sensor-name">NODE 3</div>
-                    <div class="sensor-value" id="node3Value">--</div>
-                    <div class="sensor-status offline" id="node3Status">OFFLINE</div>
-                </div>
-            </div>
-            
-            <!-- Audio visualization -->
-            <div class="chart-container">
+        <!-- Left Panel - Sensor Data -->
+        <div class="content-panel left-panel">
+            <div class="content-title">Ambient Signals</div>
+            <div id="sensorDisplay" class="chart-container">
                 <canvas id="audioChart"></canvas>
             </div>
+            <div id="sensorStatus" class="content-text"></div>
         </div>
 
-        <!-- Footer -->
-        <div class="party-footer">
-            <div>SYSTEM STATUS: <span id="systemStatus">INITIALIZING</span></div>
-            <div>NODES: <span id="activeNodes">0/3</span> | UPTIME: <span id="uptime">00:00:00</span></div>
+        <!-- Right Panel - Observations -->
+        <div class="content-panel right-panel">
+            <div class="content-title">Observations</div>
+            <div id="observationsDisplay">
+                <div class="content-text">Listening...</div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-indicators">
+                <div class="status-dot" id="wsStatus"></div>
+                <div class="status-dot" id="mqttStatus"></div>
+                <div class="status-dot" id="whisperStatus"></div>
+                <div class="status-dot" id="llmStatus"></div>
+            </div>
+            <div id="uptimeCounter" class="timestamp"></div>
         </div>
     </div>
 
+    <!-- Touch feedback -->
+    <div class="touch-feedback" id="touchFeedback"></div>
+
+    <!-- Debug mode indicator -->
+    <div class="debug-indicator" id="debugIndicator">Debug mode active</div>
+
+    <!-- Scripts -->
     <script type="module">
         import { PartyApp } from './js/pages/party-app.js';
 
-        // Initialize Chart.js for audio visualization
+        // Initialize Chart.js
         const ctx = document.getElementById('audioChart').getContext('2d');
         const audioChart = new Chart(ctx, {
             type: 'line',
-            data: { 
+            data: {
+                labels: [],
                 datasets: [{
-                    label: 'Audio RMS',
+                    label: 'Audio Level',
                     data: [],
-                    borderColor: '#00ff00',
-                    backgroundColor: 'rgba(0, 255, 0, 0.1)',
-                    borderWidth: 2,
+                    borderColor: '#00ff88',
+                    backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                    borderWidth: 1,
                     fill: true,
                     tension: 0.4
                 }]
@@ -524,28 +310,32 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: { duration: 0 },
-                interaction: { intersect: false },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
                 scales: {
                     x: {
-                        type: 'time',
-                        time: {
-                            unit: 'second',
-                            displayFormats: { second: 'HH:mm:ss' }
-                        },
-                        ticks: { color: '#00ff00', maxTicksLimit: 8 },
-                        grid: { color: 'rgba(0, 255, 0, 0.2)' }
+                        display: false
                     },
                     y: {
                         min: 0,
                         max: 1,
-                        ticks: { color: '#00ff00', maxTicksLimit: 5 },
-                        grid: { color: 'rgba(0, 255, 0, 0.2)' }
+                        ticks: { 
+                            color: '#888', 
+                            maxTicksLimit: 3,
+                            font: { size: 10 }
+                        },
+                        grid: { 
+                            color: 'rgba(136, 136, 136, 0.1)',
+                            drawBorder: false
+                        }
                     }
                 },
-                plugins: {
-                    legend: {
-                        display: false
+                elements: {
+                    point: {
+                        radius: 0
                     }
                 }
             }
@@ -560,18 +350,127 @@
             document.body.classList.add('error-state');
         });
 
-        // Touch interaction handling
-        let touchStartTime = 0;
-        document.addEventListener('touchstart', (e) => {
-            touchStartTime = Date.now();
+        // Prevent browser gestures and context menus
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            return false;
         });
 
+        // Prevent browser back/forward gestures
+        document.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+
+        document.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+
         document.addEventListener('touchend', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+
+        // Prevent zoom gestures
+        document.addEventListener('gesturestart', (e) => {
+            e.preventDefault();
+        });
+
+        document.addEventListener('gesturechange', (e) => {
+            e.preventDefault();
+        });
+
+        document.addEventListener('gestureend', (e) => {
+            e.preventDefault();
+        });
+
+        // Prevent keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Allow only specific keys for debugging
+            if (e.key === 'F12' || e.key === 'Escape') {
+                return; // Allow F12 for dev tools and Escape for debug mode
+            }
+            e.preventDefault();
+        });
+
+        // Prevent drag and drop
+        document.addEventListener('dragstart', (e) => {
+            e.preventDefault();
+        });
+
+        document.addEventListener('drop', (e) => {
+            e.preventDefault();
+        });
+
+        // Custom touch interaction handling
+        let touchStartTime = 0;
+        let touchStartPos = { x: 0, y: 0 };
+        let touchFeedback = document.getElementById('touchFeedback');
+        let konamiSequence = [];
+        let lastTouchTime = 0;
+        
+        // Touch interaction handling
+        document.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchStartTime = Date.now();
+            touchStartPos = {
+                x: e.touches[0].clientX,
+                y: e.touches[0].clientY
+            };
+            touchFeedback.classList.add('active');
+            lastTouchTime = touchStartTime;
+        }, { passive: false });
+
+        document.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            // Track swipe gestures for Konami code
+            if (e.touches.length === 1) {
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - touchStartPos.x;
+                const deltaY = touch.clientY - touchStartPos.y;
+                
+                // Detect swipe direction
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    if (deltaX > 50) {
+                        konamiSequence.push('right');
+                    } else if (deltaX < -50) {
+                        konamiSequence.push('left');
+                    }
+                } else {
+                    if (deltaY > 50) {
+                        konamiSequence.push('down');
+                    } else if (deltaY < -50) {
+                        konamiSequence.push('up');
+                    }
+                }
+                
+                // Check for Konami code: up-up-down-down-left-right-left-right
+                const konamiCode = ['up', 'up', 'down', 'down', 'left', 'right', 'left', 'right'];
+                if (konamiSequence.length >= konamiCode.length) {
+                    const recentSequence = konamiSequence.slice(-konamiCode.length);
+                    if (JSON.stringify(recentSequence) === JSON.stringify(konamiCode)) {
+                        console.log('Konami code detected!');
+                        partyApp.triggerKonamiCode();
+                        konamiSequence = [];
+                    }
+                }
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchend', (e) => {
+            e.preventDefault();
             const touchDuration = Date.now() - touchStartTime;
+            touchFeedback.classList.remove('active');
+            
             if (touchDuration > 2000) { // Long press
                 partyApp.toggleDebugMode();
+            } else if (touchDuration < 500) { // Short tap
+                partyApp.handleTap();
             }
-        });
+            
+            // Reset Konami sequence after a delay
+            setTimeout(() => {
+                konamiSequence = [];
+            }, 1000);
+        }, { passive: false });
 
         // Error handling
         window.addEventListener('error', (ev) => {

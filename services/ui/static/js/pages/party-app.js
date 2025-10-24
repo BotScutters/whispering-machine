@@ -214,26 +214,21 @@ export class PartyApp {
      * Update transcript display
      */
     updateTranscriptDisplay() {
-        const container = document.getElementById('transcriptContent');
+        const container = document.getElementById('observationsDisplay');
         if (!container) return;
 
         if (this.transcripts.length === 0) {
             container.innerHTML = `
-                <div class="transcript-item">
-                    <div class="transcript-timestamp">Waiting for audio...</div>
-                    <div class="transcript-text">The machine listens...</div>
-                </div>
+                <div class="content-text">Listening...</div>
             `;
             return;
         }
 
         let html = '';
-        this.transcripts.slice(0, 20).forEach(transcript => {
+        this.transcripts.slice(0, 10).forEach(transcript => {
             html += `
-                <div class="transcript-item">
-                    <div class="transcript-timestamp">${transcript.timestamp}</div>
-                    <div class="transcript-text">${this.addGlitchEffect(transcript.text)}</div>
-                </div>
+                <div class="content-text">${transcript.text}</div>
+                <div class="timestamp">${transcript.timestamp}</div>
             `;
         });
 
@@ -244,26 +239,21 @@ export class PartyApp {
      * Update observation display
      */
     updateObservationDisplay() {
-        const container = document.getElementById('observationContent');
+        const container = document.getElementById('observationsDisplay');
         if (!container) return;
 
         if (this.observations.length === 0) {
             container.innerHTML = `
-                <div class="observation-item">
-                    <div class="observation-timestamp">Initializing...</div>
-                    <div class="observation-text">The narrator awakens...</div>
-                </div>
+                <div class="content-text">Observing...</div>
             `;
             return;
         }
 
         let html = '';
-        this.observations.slice(0, 20).forEach(observation => {
+        this.observations.slice(0, 8).forEach(observation => {
             html += `
-                <div class="observation-item">
-                    <div class="observation-timestamp">${observation.timestamp}</div>
-                    <div class="observation-text">${this.addGlitchEffect(observation.text)}</div>
-                </div>
+                <div class="content-text">${observation.text}</div>
+                <div class="timestamp">${observation.timestamp}</div>
             `;
         });
 
@@ -340,6 +330,7 @@ export class PartyApp {
      */
     updateStatusIndicators() {
         const indicators = {
+            ws: document.getElementById('wsStatus'),
             mqtt: document.getElementById('mqttStatus'),
             whisper: document.getElementById('whisperStatus'),
             llm: document.getElementById('llmStatus')
@@ -348,9 +339,11 @@ export class PartyApp {
         Object.entries(indicators).forEach(([key, element]) => {
             if (element) {
                 if (this.status[key]) {
-                    element.classList.add('active');
+                    element.classList.add('connected');
+                    element.classList.remove('disconnected');
                 } else {
-                    element.classList.remove('active');
+                    element.classList.add('disconnected');
+                    element.classList.remove('connected');
                 }
             }
         });
@@ -446,19 +439,30 @@ export class PartyApp {
     }
 
     /**
-     * Toggle debug mode (long press)
+     * Handle tap interaction
      */
-    toggleDebugMode() {
-        this.debugMode = !this.debugMode;
-        console.log(`Debug mode: ${this.debugMode ? 'ON' : 'OFF'}`);
+    handleTap() {
+        console.log('Tap detected');
+        // Add subtle visual feedback
+        document.body.style.background = '#0f0f0f';
+        setTimeout(() => {
+            document.body.style.background = '#0a0a0a';
+        }, 100);
+    }
+
+    /**
+     * Trigger Konami code easter egg
+     */
+    triggerKonamiCode() {
+        console.log('Konami code activated!');
+        // Add special visual effect
+        document.body.style.background = 'linear-gradient(45deg, #0a0a0a, #001a0a, #0a0a0a)';
+        setTimeout(() => {
+            document.body.style.background = '#0a0a0a';
+        }, 1000);
         
-        if (this.debugMode) {
-            document.body.style.cursor = 'default';
-            document.querySelector('.touch-hint').textContent = 'Debug mode active';
-        } else {
-            document.body.style.cursor = 'none';
-            document.querySelector('.touch-hint').textContent = 'Touch to interact';
-        }
+        // Trigger any special functionality
+        this.stateManager.update('konami_activated', true);
     }
 
     /**
