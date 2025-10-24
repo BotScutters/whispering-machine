@@ -98,12 +98,14 @@ class WSL2DisplayManager:
     def _get_windows_hostname(self) -> str:
         """Get Windows hostname via WSL2 integration"""
         try:
+            # Try to access Windows hostname via WSL2 integration
+            # This should work from WSL2 but not from inside Docker container
             result = subprocess.run([
-                'powershell.exe', '-Command', 'Write-Host $env:COMPUTERNAME'
+                'hostname'
             ], capture_output=True, text=True, timeout=5)
-            return result.stdout.strip() if result.returncode == 0 else 'unknown'
+            return result.stdout.strip() if result.returncode == 0 else 'wsl2-host'
         except Exception:
-            return 'unknown'
+            return 'wsl2-host'
     
     async def initialize(self) -> bool:
         """Initialize WSL2 display manager"""
@@ -135,37 +137,10 @@ class WSL2DisplayManager:
     async def _detect_wsl2_display_state(self):
         """Detect current Windows display configuration via WSL2"""
         try:
-            # Use PowerShell via WSL2 to detect displays
-            result = subprocess.run([
-                'powershell.exe', '-Command',
-                'Get-WmiObject -Class Win32_VideoController | Select-Object Name, VideoModeDescription | ConvertTo-Json'
-            ], capture_output=True, text=True, timeout=10)
-            
-            if result.returncode == 0:
-                display_data = json.loads(result.stdout)
-                displays = display_data if isinstance(display_data, list) else [display_data]
-                
-                self.logger.info(f"Detected {len(displays)} display(s) via WSL2")
-                
-                # Determine current state
-                if len(displays) == 1:
-                    self.current_state = DisplayState.INTERNAL_ONLY
-                elif len(displays) > 1:
-                    # Check if external display is connected
-                    external_display = any(
-                        'usb' in str(display).lower() or 
-                        'external' in str(display).lower() or
-                        'touchscreen' in str(display).lower()
-                        for display in displays
-                    )
-                    if external_display:
-                        self.current_state = DisplayState.EXTERNAL_ONLY
-                    else:
-                        self.current_state = DisplayState.MIRRORED
-                
-            else:
-                self.logger.warning("Could not detect display state via WSL2, assuming external")
-                self.current_state = DisplayState.EXTERNAL_ONLY
+            # For WSL2 party mode, assume external display is available
+            # The actual display configuration is handled by the Windows host
+            self.logger.info("WSL2 party mode: assuming external display available")
+            self.current_state = DisplayState.EXTERNAL_ONLY
                 
         except Exception as e:
             self.logger.error(f"WSL2 display detection failed: {e}")
@@ -176,25 +151,15 @@ class WSL2DisplayManager:
         try:
             self.logger.info("Configuring Windows displays for WSL2 party mode...")
             
-            # Disable screensaver and sleep via Windows
-            await self._disable_wsl2_power_management()
-            
-            # Configure external display as primary via Windows
-            await self._set_wsl2_primary_display()
-            
-            # Set resolution and brightness via Windows
-            await self._configure_wsl2_display_settings()
-            
-            # Enable touch calibration if needed
-            if self.config.touch_calibration:
-                await self._calibrate_wsl2_touchscreen()
-            
+            # For WSL2 party mode, we assume the Windows host handles display configuration
+            # The touchscreen should be configured externally via the startup script
+            self.logger.info("WSL2 party mode: display configuration handled by Windows host")
             self.last_successful_config = time.time()
             return True
             
         except Exception as e:
             self.logger.error(f"WSL2 display configuration failed: {e}")
-            return await self._attempt_recovery()
+            return False
     
     async def _disable_wsl2_power_management(self):
         """Disable Windows screensaver and sleep via WSL2"""

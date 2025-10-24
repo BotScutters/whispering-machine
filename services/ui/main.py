@@ -22,9 +22,8 @@ RAW_TOPIC = f"{TOPIC_BASE}/#"
 
 app = FastAPI()
 
-# Mount static files for JS modules and CSS
+# Mount static files for JS modules
 app.mount("/js", StaticFiles(directory="static/js"), name="js")
-app.mount("/css", StaticFiles(directory="static/css"), name="css")
 
 ui_state: dict[str, Any] = {
     "noise": {"rms": 0.0},
@@ -42,15 +41,22 @@ _loop: asyncio.AbstractEventLoop | None = None
 
 
 def on_connect(client, userdata, flags, reason_code, properties=None):
-    client.subscribe(STATE_TOPIC, qos=0)
-    client.subscribe(RAW_TOPIC, qos=0)
+    if reason_code == 0:
+        print(f"[UI] Connected to MQTT broker successfully")
+        client.subscribe(STATE_TOPIC, qos=0)
+        client.subscribe(RAW_TOPIC, qos=0)
+        print(f"[UI] Subscribed to topics: {STATE_TOPIC}, {RAW_TOPIC}")
+    else:
+        print(f"[UI] Failed to connect to MQTT broker. Reason code: {reason_code}")
 
 
 def on_message(client, userdata, msg):
     """Called in Paho's thread → schedule work onto the asyncio loop safely."""
     try:
+        print(f"[UI] Received MQTT message: {msg.topic}")
         data = json.loads(msg.payload.decode("utf-8", "ignore"))
-    except Exception:
+    except Exception as e:
+        print(f"[UI] Error parsing MQTT message: {e}")
         return
     
     loop: asyncio.AbstractEventLoop = userdata["loop"]
@@ -61,8 +67,16 @@ def on_message(client, userdata, msg):
     # Route messages based on topic
     if msg.topic == STATE_TOPIC:
         loop.call_soon_threadsafe(queue.put_nowait, data)
-    elif msg.topic.startswith("party/") and ("transcript" in msg.topic or "observation" in msg.topic):
-        # Party-specific messages (transcripts, observations)
+    elif msg.topic.startswith("party/"):
+        # All party messages go to both debug and party queues
+        debug_data = {
+            "topic": msg.topic,
+            "payload": data,
+            "timestamp": userdata["timestamp"]()
+        }
+        loop.call_soon_threadsafe(debug_queue.put_nowait, debug_data)
+        
+        # Also send to party queue for real-time display
         party_data = {
             "topic": msg.topic,
             "payload": data,
@@ -86,9 +100,12 @@ async def startup():
 
     # Start MQTT client in its own thread; pass loop/queue via userdata
     def mqtt_thread():
+        import uuid
+        client_id = f"wm-ui-{uuid.uuid4().hex[:8]}"
+        
         c = mqtt.Client(
             mqtt.CallbackAPIVersion.VERSION2,
-            client_id="wm-ui",
+            client_id=client_id,
             userdata={
                 "loop": _loop, 
                 "queue": _queue, 
@@ -99,8 +116,15 @@ async def startup():
         )
         c.on_connect = on_connect
         c.on_message = on_message
-        c.connect(BROKER_HOST, BROKER_PORT, 60)
-        c.loop_forever()
+        
+        print(f"[UI] Connecting to MQTT broker at {BROKER_HOST}:{BROKER_PORT} with client ID: {client_id}")
+        result = c.connect(BROKER_HOST, BROKER_PORT, 60)
+        print(f"[UI] MQTT connect result: {result}")
+        
+        if result == 0:
+            c.loop_forever()
+        else:
+            print(f"[UI] Failed to connect to MQTT broker")
 
     import threading
 

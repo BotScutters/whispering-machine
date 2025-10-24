@@ -205,13 +205,27 @@ error_recovery_manager = ErrorRecoveryManager()
 
 def on_connect(client, userdata, flags, reason_code, properties=None):
     """MQTT connection callback"""
-    # Subscribe to all sensor topics
-    client.subscribe(f"{TOPIC_BASE}/+/audio/features", qos=0)
-    client.subscribe(f"{TOPIC_BASE}/+/occupancy/state", qos=0)
-    client.subscribe(f"{TOPIC_BASE}/+/poll/vote", qos=0)
-    client.subscribe(f"{TOPIC_BASE}/+/sys/heartbeat", qos=0)
-    
-    print(f"Connected to MQTT broker, subscribed to {TOPIC_BASE}/+/...")
+    if reason_code == 0:
+        print(f"Connected to MQTT broker successfully")
+        # Subscribe to all sensor topics
+        client.subscribe(f"{TOPIC_BASE}/+/audio/features", qos=0)
+        client.subscribe(f"{TOPIC_BASE}/+/occupancy/state", qos=0)
+        client.subscribe(f"{TOPIC_BASE}/+/poll/vote", qos=0)
+        client.subscribe(f"{TOPIC_BASE}/+/sys/heartbeat", qos=0)
+        
+        print(f"Subscribed to {TOPIC_BASE}/+/...")
+    else:
+        print(f"Failed to connect to MQTT broker. Reason code: {reason_code}")
+
+
+def on_disconnect(client, userdata, flags, reason_code, properties=None):
+    """MQTT disconnection callback"""
+    print(f"Disconnected from MQTT broker. Reason code: {reason_code}")
+
+
+def on_log(client, userdata, level, buf):
+    """MQTT logging callback"""
+    print(f"MQTT Log: {buf}")
 
 
 def on_message(client, userdata, msg):
@@ -339,16 +353,47 @@ def main():
     print(f"Starting Whispering Machine Aggregator for {HOUSE_ID}")
     print(f"Connecting to MQTT broker at {BROKER_HOST}:{BROKER_PORT}")
     
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="wm-aggregator")
+    # Generate unique client ID to avoid conflicts
+    import uuid
+    client_id = f"wm-aggregator-{uuid.uuid4().hex[:8]}"
+    
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=client_id)
     client.on_connect = on_connect
+    client.on_disconnect = on_disconnect
     client.on_message = on_message
-    client.connect(BROKER_HOST, BROKER_PORT, 60)
-    client.loop_start()
+    client.on_log = on_log
     
     try:
-        publish_state_forever(client)
-    finally:
-        client.loop_stop()
+        print(f"Attempting to connect to MQTT broker with client ID: {client_id}")
+        result = client.connect(BROKER_HOST, BROKER_PORT, 60)
+        print(f"Connect result: {result}")
+        
+        if result == 0:
+            print("Starting MQTT loop...")
+            client.loop_start()
+            
+            # Wait a moment for connection to establish
+            import time
+            time.sleep(2)
+            
+            if client.is_connected():
+                print("MQTT connection established successfully")
+                try:
+                    publish_state_forever(client)
+                except KeyboardInterrupt:
+                    print("Shutting down...")
+                finally:
+                    client.loop_stop()
+                    client.disconnect()
+            else:
+                print("MQTT connection failed - not connected after 2 seconds")
+        else:
+            print(f"Failed to initiate MQTT connection. Result: {result}")
+            
+    except Exception as e:
+        print(f"Error in main function: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 if __name__ == "__main__":
