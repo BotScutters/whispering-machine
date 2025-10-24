@@ -35,12 +35,7 @@ class TestConfig:
             'health_endpoint': '/',
             'test_file': None  # UI tests are integration tests
         },
-        'audio_bridge': {
-            'port': 8000,
-            'health_endpoint': '/health',
-            'test_file': None  # Needs integration tests
-        },
-        'llm_agent': {
+        'display_manager': {
             'port': 8000,
             'health_endpoint': '/health',
             'test_file': None  # Needs integration tests
@@ -72,18 +67,18 @@ class ServiceTester:
             image_name = f"infra-{self.service_name}"
             print(f"Building {self.service_name} service...")
             
-            # Use docker compose to build (works in Docker mode)
+            # Use docker build directly (more reliable than compose build)
             if self.is_docker_mode:
-                # In Docker mode, use docker compose from host
+                # In Docker mode, build directly
                 result = subprocess.run([
-                    'docker', 'compose', '-f', '/workspace/infra/docker-compose.yml', 
-                    'build', self.service_name
+                    'docker', 'build', '-t', image_name, 
+                    f'/workspace/services/{self.service_name}'
                 ], capture_output=True, text=True, cwd='/workspace')
             else:
-                # In host mode, use local docker compose
+                # In host mode, build directly
                 result = subprocess.run([
-                    'docker', 'compose', '-f', 'infra/docker-compose.yml', 
-                    'build', self.service_name
+                    'docker', 'build', '-t', image_name, 
+                    f'services/{self.service_name}'
                 ], capture_output=True, text=True, cwd=Path.cwd())
             
             if result.returncode != 0:
@@ -100,21 +95,35 @@ class ServiceTester:
                 pass
             
             # Start new container with appropriate network
-            network_name = 'whispering-machine_default' if not self.is_docker_mode else 'host'
-            
-            self.container = self.docker_client.containers.run(
-                image_name,
-                name=container_name,
-                detach=True,
-                ports={f"{self.config['port']}/tcp": None},
-                environment={
-                    'HOUSE_ID': 'test_house',
-                    'BROKER_HOST': 'mosquitto',
-                    'BROKER_PORT': '1883',
-                    'LOG_LEVEL': 'DEBUG'
-                },
-                network=network_name
-            )
+            if self.is_docker_mode:
+                # In Docker mode, use the infra_default network
+                self.container = self.docker_client.containers.run(
+                    image_name,
+                    name=container_name,
+                    detach=True,
+                    ports={f"{self.config['port']}/tcp": None},
+                    environment={
+                        'HOUSE_ID': 'test_house',
+                        'BROKER_HOST': 'mosquitto',
+                        'BROKER_PORT': '1883',
+                        'LOG_LEVEL': 'DEBUG'
+                    },
+                    network='infra_default'
+                )
+            else:
+                # In host mode, use default bridge network
+                self.container = self.docker_client.containers.run(
+                    image_name,
+                    name=container_name,
+                    detach=True,
+                    ports={f"{self.config['port']}/tcp": None},
+                    environment={
+                        'HOUSE_ID': 'test_house',
+                        'BROKER_HOST': 'mosquitto',
+                        'BROKER_PORT': '1883',
+                        'LOG_LEVEL': 'DEBUG'
+                    }
+                )
             
             # Wait for service to be ready
             return self.wait_for_health()
@@ -382,10 +391,16 @@ class TestRunner:
                 work_dir = Path.cwd()
             
             # Start mosquitto
-            result = subprocess.run([
-                'docker', 'compose', '-f', compose_file, 
-                'up', '-d', 'mosquitto'
-            ], capture_output=True, text=True, cwd=work_dir)
+            if os.getenv('TEST_MODE') == 'docker':
+                result = subprocess.run([
+                    'docker-compose', '-f', compose_file, 
+                    'up', '-d', 'mosquitto'
+                ], capture_output=True, text=True, cwd=work_dir)
+            else:
+                result = subprocess.run([
+                    'docker', 'compose', '-f', compose_file, 
+                    'up', '-d', 'mosquitto'
+                ], capture_output=True, text=True, cwd=work_dir)
             
             if result.returncode != 0:
                 print(f"❌ Failed to start infrastructure: {result.stderr}")
@@ -529,10 +544,16 @@ class TestRunner:
                 compose_file = 'infra/docker-compose.yml'
                 work_dir = Path.cwd()
             
-            subprocess.run([
-                'docker', 'compose', '-f', compose_file, 
-                'down'
-            ], capture_output=True, text=True, cwd=work_dir)
+            if os.getenv('TEST_MODE') == 'docker':
+                subprocess.run([
+                    'docker-compose', '-f', compose_file, 
+                    'down'
+                ], capture_output=True, text=True, cwd=work_dir)
+            else:
+                subprocess.run([
+                    'docker', 'compose', '-f', compose_file, 
+                    'down'
+                ], capture_output=True, text=True, cwd=work_dir)
             print("✅ Cleanup completed")
         except Exception as e:
             print(f"⚠️  Cleanup warning: {e}")

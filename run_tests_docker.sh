@@ -34,6 +34,10 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+# Install docker compose
+RUN curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
+    && chmod +x /usr/local/bin/docker-compose
+
 WORKDIR /app
 
 # Copy test requirements and install
@@ -70,7 +74,7 @@ sleep 10
 # Run the test suite in Docker
 echo "🧪 Running test suite in Docker container..."
 docker run --rm \
-    --network whispering-machine_default \
+    --network infra_default \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v $(pwd):/workspace \
     -w /workspace \
