@@ -178,7 +178,7 @@ class MockAudioBridge:
             loop = asyncio.get_event_loop()
             msg_info = await loop.run_in_executor(
                 None,
-                lambda: self.mqtt_client.publish(topic, payload, qos=1)
+                lambda: self.mqtt_client.publish(topic, payload, qos=0)
             )
             
             # Wait for the message to be published
