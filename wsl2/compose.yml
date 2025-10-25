@@ -6,7 +6,7 @@ services:
       - "1883:1883"
       - "1884:1884"
     volumes:
-      - ./infra/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
     healthcheck:
       test: ["CMD", "mosquitto_pub", "-h", "localhost", "-t", "test", "-m", "healthcheck"]
       interval: 30s
