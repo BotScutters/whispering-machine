@@ -1,547 +1,387 @@
-# Tickets (Well-scoped, agent-ready)
+# Whispering Machine - Development Tickets
 
-> Contribute via small PRs. Every ticket lists **Acceptance** and **How to test**.
+> **Current Architecture**: WSL2 laptop hub with ESP32 nodes, GL-iNet travel router, Tailscale to unRAID Whisper service
+> **Target**: Party-ready system with sophisticated UI and reliable MQTT message routing
 
 ---
 
-## 🚨 CRITICAL PATH: WSL2 Party Interface Issues (Current Session)
+## 🚨 CRITICAL PATH: Testing-Driven Debugging
 
-**Context**: WSL2 services are running but multiple critical issues need immediate attention for party readiness.
-
-### T-036: Fix Party UI Aesthetic and Responsiveness
+### T-001: Establish Comprehensive Test Suite
 **Status**: TODO  
 **Priority**: CRITICAL  
-**Goal**: Redesign party UI for 1024x600 touchscreen with sophisticated, subtle aesthetic.
+**Goal**: Test-driven debugging to identify and fix MQTT and other issues
+
+**Context**: 
+- MQTT message routing issues persist despite multiple attempts
+- Other bugs exist that haven't been systematically identified
+- Need testing infrastructure to enable fresh eyes and faster debugging
+- Testing will reveal root causes of current issues
 
 **Tasks**:
-- Remove "WHISPERING MACHINE" jittery title (1990s nightmare)
-- Remove "PARTY MODE - UNRELIABLE NARRATOR" subtitle
-- Remove explicit labels like "this panel contains transcripts" and "this box contains AI observations"
-- Redesign with subtle, classy, sophisticated aesthetic
-- Make responsive for 1024x600 display
-- Reuse debug UI components where appropriate
-- Remove pale background, use better color scheme
-- Make content self-explanatory without labels
+- Fix and enhance existing test suite for WSL2 environment
+- Create comprehensive integration tests for MQTT message flow
+- Add UI component tests for message display
+- Create end-to-end tests for complete system behavior
+- Add performance tests for long-running scenarios
+- Document testing procedures and make them accessible
 
 **Acceptance**:
-- UI looks sophisticated and subtle on 1024x600 touchscreen
-- No explicit labels telling users what things are
-- Content is self-explanatory through design
-- Responsive layout works properly
-- Aesthetic matches debug UI quality
+- Test suite runs successfully in WSL2 environment
+- Tests cover all critical functionality including MQTT routing
+- Tests catch regressions reliably
+- New developers can run tests immediately
+- Tests reveal root causes of current issues
 
 **Test**:
-- Load on 1024x600 touchscreen
-- Verify no explicit labels
-- Test touch interactions
-- Compare aesthetic to debug UI
+- Run `make test-all` - all tests pass
+- Introduce bug, verify tests catch it
+- Run tests with fresh eyes to identify issues
 
 **Estimated Time**: 3-4 hours
 
 ---
 
-### T-037: Fix MQTT Connection Issues
+### T-002: Debug MQTT Issues Through Testing
 **Status**: TODO  
-**Priority**: CRITICAL  
-**Goal**: Resolve MQTT connectivity problems preventing ESP32 nodes from connecting.
+**Priority**: HIGH  
+**Goal**: Use testing to systematically identify and fix MQTT routing issues
+
+**Context**: 
+- LLM messages reach UI backend but not frontend components
+- Multiple debugging attempts haven't resolved the issue
+- Need systematic approach to identify root cause
 
 **Tasks**:
-- Investigate why MQTT shows red status in debug/party UI
-- Fix mosquitto port configuration (currently 1883:1883 AND 1884:1884)
-- Ensure ESP32 nodes can connect to broker at 192.168.50.240:1883
-- Test MQTT message flow from ESP32 to UI
-- Fix any authentication or network issues
+- Create specific tests for MQTT message routing
+- Test each component of the message flow pipeline
+- Identify exactly where messages are lost
+- Fix issues revealed by testing
+- Verify fixes with comprehensive tests
 
 **Acceptance**:
-- MQTT status shows green in debug/party UI
-- ESP32 nodes successfully connect to broker
-- Messages flow from ESP32 → MQTT → UI
-- Debug page shows incoming messages
+- MQTT message routing works reliably
+- LLM messages appear in MQTT Debugger
+- Party UI displays LLM content
+- All message types route correctly
 
 **Test**:
-- Check MQTT status in debug UI
-- Monitor MQTT messages: `mosquitto_sub -h localhost -t "party/+/+/+/+"`
-- Test ESP32 node connection
-- Verify message flow end-to-end
+- Run MQTT routing tests
+- Verify end-to-end message flow
+- Test with different message types and volumes
 
 **Estimated Time**: 2-3 hours
 
 ---
 
-### T-038: Fix Whisper and LLM Agent Services
+## 🧹 REPOSITORY CLEANUP
+
+### T-003: Remove MacBook-Specific Code and Documentation
 **Status**: TODO  
 **Priority**: HIGH  
-**Goal**: Get Whisper transcription and LLM agent services working properly.
+**Goal**: Remove obsolete MacBook references and code
+
+**Context**: MacBook is no longer the target platform - WSL2 laptop is the hub
 
 **Tasks**:
-- Fix Whisper service connection (currently red status)
-- Fix LLM agent service (currently red status)
-- Ensure proper Tailscale integration for Whisper
-- Test audio transcription flow
-- Test LLM observation generation
+- Audit entire repository for MacBook references
+- Remove `macbook/` directory and all contents
+- Update documentation to remove MacBook mentions
+- Remove MacBook-specific Docker configurations
+- Update README and architecture docs
+- Preserve any valuable MacBook-specific code in comments/docs
 
 **Acceptance**:
-- Whisper status shows green in party UI
-- LLM agent status shows green in party UI
-- Audio transcription works end-to-end
-- LLM observations appear in UI
+- No MacBook references in active code
+- `macbook/` directory completely removed
+- Documentation reflects WSL2 laptop as hub
+- No confusion for new developers
 
 **Test**:
-- Check service status in party UI
-- Test audio capture and transcription
-- Verify LLM observations appear
-- Monitor service logs
-
-**Estimated Time**: 2-3 hours
-
----
-
-### T-039: Install PlatformIO in WSL2 Environment
-**Status**: TODO  
-**Priority**: HIGH  
-**Goal**: Enable ESP32 firmware development and OTA updates from WSL2.
-
-**Tasks**:
-- Install PlatformIO in WSL2 environment
-- Configure for ESP32 development
-- Test USB and OTA upload capabilities
-- Update ESP32 node configurations
-- Test firmware updates
-
-**Acceptance**:
-- PlatformIO installed and working in WSL2
-- Can upload firmware via USB and OTA
-- ESP32 nodes respond to updates
-- Development workflow works smoothly
-
-**Test**:
-- Install PlatformIO
-- Test `pio run -e node1-usb -t upload`
-- Test `pio run -e node1-ota -t upload`
-- Verify ESP32 nodes update successfully
+- Search repository for "macbook" - should return only historical references
+- Verify no MacBook-specific code in active services
+- Check that documentation is clear about current architecture
 
 **Estimated Time**: 1-2 hours
 
 ---
 
-### T-040: Configure GL-iNet Travel Router Network
-**Status**: TODO  
-**Priority**: HIGH  
-**Goal**: Set up travel router for party network with Tailscale integration.
-
-**Tasks**:
-- Configure GL-iNet router to host local WiFi network
-- Set up laptop to connect to router network
-- Configure ESP32 nodes to connect to router network
-- Set up Tailscale connection for Whisper service
-- Test end-to-end network connectivity
-
-**Acceptance**:
-- Router hosts local WiFi network
-- Laptop connects to router network
-- ESP32 nodes connect to router network
-- Tailscale connection works for Whisper
-- All devices can communicate
-
-**Test**:
-- Configure router settings
-- Test device connections
-- Verify Tailscale connectivity
-- Test ESP32 → MQTT → UI flow
-
-**Estimated Time**: 2-3 hours
-
----
-
-### T-041: Fix Debug Mode Activation Mystery
+### T-004: Remove Windows-Specific Code and Documentation  
 **Status**: TODO  
 **Priority**: MEDIUM  
-**Goal**: Understand and fix debug mode activation behavior.
+**Goal**: Remove obsolete Windows-specific code
+
+**Context**: Windows directory may contain outdated configurations
 
 **Tasks**:
-- Investigate why debug mode shows "Debug mode active" vs "Touch to interact"
-- Fix inconsistent debug mode behavior
-- Ensure touch interactions work properly
-- Remove confusing debug mode indicators
+- Audit `windows/` directory for obsolete content
+- Remove Windows-specific configurations that are no longer needed
+- Update documentation to remove Windows-specific instructions
+- Preserve any valuable Windows-specific code in comments/docs
 
 **Acceptance**:
-- Debug mode behavior is consistent
-- Touch interactions work reliably
-- No confusing debug mode indicators
-- Clear interaction feedback
+- No obsolete Windows-specific code in active use
+- Documentation reflects current WSL2 setup
+- No confusion for new developers
 
 **Test**:
-- Test debug mode activation
-- Test touch interactions
-- Verify consistent behavior
-- Check interaction feedback
+- Verify Windows directory doesn't contain active configurations
+- Check that documentation is clear about WSL2 setup
 
 **Estimated Time**: 1 hour
 
 ---
 
-## 🚨 CRITICAL PATH: MacBook Party Interface (3 Days to Party)
-
-**Architecture**: MacBook runs all services, drives 7" touchscreen, connects to ESP32 nodes + Whisper via Tailscale. Interface must be robust to unreliable sensors and work standalone for 6+ hours.
-
-### T-028: MacBook Service Stack Setup
+### T-005: Consolidate and Update Documentation
 **Status**: TODO  
-**Priority**: CRITICAL  
-**Goal**: Set up MacBook to run all services locally with Docker.
+**Priority**: HIGH  
+**Goal**: Clear, accurate documentation for new developers
+
+**Context**: Multiple outdated docs causing confusion
 
 **Tasks**:
-- Create `macbook/compose.yml` with services:
-  - `mosquitto` (MQTT broker)
-  - `aggregator` (processes all node data)
-  - `ui` (serves party interface)
-  - `audio_bridge` (MacBook mic → Whisper)
-  - `llm_agent` (NEW - generates observations)
-- Create `macbook/.env.example` with MacBook-specific config
-- Add MacBook-specific Dockerfile optimizations
-- Configure for closed-lid operation (if possible)
+- Audit all documentation files for accuracy
+- Remove outdated architecture descriptions
+- Consolidate duplicate information
+- Update README with current setup instructions
+- Create clear getting-started guide
+- Update architecture diagrams
 
 **Acceptance**:
-- `docker compose -f macbook/compose.yml up -d` starts all services
-- Services run with MacBook lid closed (test 30 minutes)
-- MQTT broker reachable at `localhost:1883`
-- UI accessible at `http://localhost:8000/party`
+- Single source of truth for each topic
+- Documentation matches current codebase
+- New developers can follow docs without confusion
+- Clear separation between historical and current information
 
 **Test**:
-```bash
-cd /path/to/whispering-machine
-docker compose -f macbook/compose.yml up -d
-docker ps  # All services running
-# Close MacBook lid, wait 30 min, reopen - services still running
-```
+- New developer follows docs to set up system
+- All documentation links work
+- No contradictory information
 
 **Estimated Time**: 2-3 hours
 
 ---
 
-### T-029: MacBook Audio Bridge (Built-in Mic → Whisper)
+## 🧪 TESTING INFRASTRUCTURE
+
+### T-006: Establish Test-Driven Development Discipline
 **Status**: TODO  
-**Priority**: CRITICAL  
-**Goal**: Capture audio from MacBook built-in microphone, send to Whisper, publish transcripts.
+**Priority**: HIGH  
+**Goal**: Comprehensive testing at multiple levels
+
+**Context**: Need stability and confidence through proper testing
+
+**Requirements**:
+- Every code file has associated `test_<filename>.py` or equivalent
+- Unit tests for individual functions/classes
+- Integration tests within packages
+- External integration tests via Docker containers
+- High-level end-to-end tests
+- Documentation and Makefile targets for running tests
 
 **Tasks**:
-- Create `services/audio_bridge/` (reuse from Pi design)
-- Implement macOS audio capture (Core Audio / AVAudioEngine)
-- Handle closed-lid audio capture (research macOS behavior)
-- Implement HTTP client for Whisper (Wyoming protocol)
-- Publish transcripts to `party/<house>/macbook/speech/transcript`
-- Add fallback for when Whisper is unavailable
-- Implement audio chunking (2-5 second segments)
+- Audit existing test infrastructure
+- Create missing unit tests for all services
+- Establish integration test patterns
+- Create external test containers
+- Add Makefile targets for all test levels
+- Document testing strategy and procedures
 
 **Acceptance**:
-- Captures audio from MacBook mic with lid closed
-- Sends audio chunks to Whisper via Tailscale
-- Publishes transcripts to MQTT within 5 seconds
-- Gracefully handles Whisper downtime
-- Works for 6+ hours without intervention
+- Every service has comprehensive unit tests
+- Integration tests cover service interactions
+- External tests verify Docker container behavior
+- Makefile provides easy test execution
+- Test coverage is documented and tracked
 
 **Test**:
-```bash
-# With MacBook lid closed
-docker logs macbook_audio_bridge --tail 50
-mosquitto_sub -h localhost -t 'party/+/macbook/speech/transcript'
-# Speak near MacBook, should see transcript within 5s
-# Leave running overnight, verify still working
-```
+- Run `make test-unit` - all unit tests pass
+- Run `make test-integration` - all integration tests pass
+- Run `make test-external` - all external tests pass
+- Verify test coverage meets standards
+
+**Estimated Time**: 4-6 hours
+
+---
+
+### T-007: Fix and Enhance Test Suite
+**Status**: TODO  
+**Priority**: HIGH  
+**Goal**: Reliable test suite that validates system behavior
+
+**Context**: Existing test suite needs updates for WSL2 environment
+
+**Tasks**:
+- Fix `run_tests_docker.sh` for WSL2 environment
+- Update test configurations for current service architecture
+- Add tests for MQTT message routing
+- Add tests for UI component behavior
+- Add tests for LLM agent functionality
+- Create performance tests for long-running scenarios
+
+**Acceptance**:
+- Test suite runs successfully in WSL2
+- Tests cover all critical functionality
+- Tests catch regressions reliably
+- Performance tests validate 6+ hour operation
+
+**Test**:
+- Run full test suite - all tests pass
+- Introduce bug, verify tests catch it
+- Run performance tests for extended periods
 
 **Estimated Time**: 3-4 hours
 
 ---
 
-### T-030: ESP32 Multi-Node Support (3 Nodes)
+## 🎨 UI IMPROVEMENTS
+
+### T-008: Fix Party UI Content Display
 **Status**: TODO  
-**Priority**: CRITICAL  
-**Goal**: Support 3 ESP32 nodes with robust handling of unreliable signals.
+**Priority**: HIGH  
+**Goal**: Party UI displays LLM content properly
+
+**Context**: Party UI is blank despite backend receiving messages
 
 **Tasks**:
-- Update aggregator to handle 3 nodes (node1, node2, node3)
-- Add node health monitoring (heartbeat timeout detection)
-- Implement graceful degradation when nodes go offline
-- Add signal quality scoring (detect "garbage" signals)
-- Update UI to show node status (online/offline/degraded)
-- Add node discovery (auto-detect new nodes)
+- Debug why Party UI doesn't display LLM content
+- Fix message routing from backend to Party UI frontend
+- Ensure Party UI components receive and display messages
+- Test Party UI with real LLM content
+- Verify Party UI works on 1024x600 touchscreen
 
 **Acceptance**:
-- All 3 nodes appear in UI
-- UI shows node health status
-- System works when 1-2 nodes are offline/degraded
-- Garbage signals are filtered out or marked as unreliable
-- New nodes auto-appear when they connect
+- Party UI displays LLM observations
+- Party UI displays LLM transcripts
+- Content updates in real-time
+- UI works properly on touchscreen
 
 **Test**:
-```bash
-# Start with all 3 nodes
-mosquitto_sub -h localhost -t 'party/+/+/+/+' -v
-# Disconnect node3, verify UI shows it as offline
-# Reconnect node3, verify it reappears
-# Test with garbage signals from node3
-```
+- Load Party UI, verify content appears
+- Test with real LLM messages
+- Verify touchscreen interaction
 
 **Estimated Time**: 2-3 hours
 
 ---
 
-### T-031: Party Interface UI (Touchscreen-Optimized)
+### T-009: Improve Debug UI Performance
 **Status**: TODO  
-**Priority**: CRITICAL  
-**Goal**: Create compelling party interface for 7" touchscreen that works standalone.
+**Priority**: MEDIUM  
+**Goal**: Smooth Debug UI performance with high message volume
+
+**Context**: Debug UI can be choppy with many messages
 
 **Tasks**:
-- Create `services/ui/static/party.html` (full-screen, no browser chrome)
-- Create `services/ui/static/js/pages/party-app.js`
-- Design for 7" touchscreen (1024x600, large text, touch-friendly)
-- Implement "unreliable narrator" aesthetic:
-  - Glitchy text effects
-  - Partial/obscured information
-  - Confidence indicators (high/medium/low/unknown)
-  - Random data injection
-- Add screensaver mode (black screen with subtle activity)
-- Implement auto-refresh and error recovery
+- Optimize MQTT Debugger rendering
+- Implement better message throttling
+- Add message filtering options
+- Optimize chart rendering
+- Add performance monitoring
 
 **Acceptance**:
-- Loads full-screen on touchscreen
-- Large, readable text from 3 feet away
-- Touch interactions work reliably
-- Runs for 6+ hours without browser refresh
-- Handles network disconnections gracefully
-- Shows "unreliable" aesthetic consistently
+- Debug UI remains smooth with high message volume
+- Message filtering works effectively
+- Performance is acceptable for development use
 
 **Test**:
-- Load on 7" touchscreen
-- Test from 3 feet away (readability)
-- Leave running overnight
-- Test with network disconnection/reconnection
-- Verify touch interactions work
-
-**Estimated Time**: 4-5 hours
-
----
-
-### T-032: LLM Agent Service (Observations & Interpretations)
-**Status**: TODO  
-**Priority**: HIGH  
-**Goal**: Generate intelligent-sounding observations from sensor data to "freak people out".
-
-**Tasks**:
-- Create `services/llm_agent/` service
-- Implement OpenAI/Anthropic API client
-- Create prompt templates for different scenarios:
-  - Audio analysis ("I heard someone mention...")
-  - Occupancy patterns ("The energy shifted when...")
-  - LED interactions ("The lights responded to...")
-  - Random observations ("I notice that...")
-- Add data injection (sensor data + randomness)
-- Publish observations to `party/<house>/macbook/observations`
-- Implement rate limiting (don't spam API)
-- Add fallback responses when API unavailable
-
-**Acceptance**:
-- Generates observations every 2-5 minutes
-- Observations sound intelligent and slightly unsettling
-- Incorporates real sensor data when available
-- Works when sensors are unreliable
-- Gracefully handles API failures
-- Observations appear in party UI
-
-**Test**:
-```bash
-mosquitto_sub -h localhost -t 'party/+/macbook/observations'
-# Should see observations every few minutes
-# Test with API disabled (fallback responses)
-# Test with unreliable sensor data
-```
-
-**Estimated Time**: 3-4 hours
-
----
-
-### T-033: Robust Data Processing (Unreliable Sensors)
-**Status**: TODO  
-**Priority**: HIGH  
-**Goal**: Make the system compelling even with garbage/unreliable sensor data.
-
-**Tasks**:
-- Implement signal quality assessment:
-  - Detect constant zeros (loose connection)
-  - Detect random spikes (interference)
-  - Detect unrealistic values (wiring issues)
-- Add data interpolation/filling for missing values
-- Implement "unreliable narrator" data presentation:
-  - Show confidence levels
-  - Display partial information
-  - Add "unknown" states
-  - Inject plausible but fake data
-- Create fallback behaviors when sensors fail
-- Add system status indicators (what's working/broken)
-
-**Acceptance**:
-- System works compellingly with 0-3 working sensors
-- Garbage signals are handled gracefully
-- UI shows appropriate confidence levels
-- Fallback behaviors are engaging, not broken
-- System status is clear to observers
-
-**Test**:
-- Test with all sensors working
-- Test with 1 sensor working
-- Test with all sensors sending garbage
-- Test with sensors going offline mid-party
-- Verify UI remains compelling in all cases
+- Run system with high message volume
+- Verify UI remains responsive
+- Test message filtering functionality
 
 **Estimated Time**: 2-3 hours
 
 ---
 
-### T-034: Touchscreen Display Setup & Optimization
+## 🔧 INFRASTRUCTURE
+
+### T-010: Fix OTA Updates from WSL2
 **Status**: TODO  
-**Priority**: HIGH  
-**Goal**: Optimize MacBook for driving 7" touchscreen in party setting.
+**Priority**: MEDIUM  
+**Goal**: ESP32 OTA updates work from WSL2 environment
+
+**Context**: OTA works from MacBook but not from WSL2
 
 **Tasks**:
-- Research MacBook closed-lid operation:
-  - Audio capture with lid closed
-  - Display output to external monitor
-  - Power management settings
-- Create display configuration script:
-  - Set external monitor as primary
-  - Disable internal display
-  - Configure for 1024x600 resolution
-  - Disable screen saver/sleep
-- Add touchscreen calibration (if needed)
-- Create startup script for party mode
-- Add emergency recovery procedures
+- Debug WSL2 networking issues for OTA
+- Test different network configurations
+- Verify ESP32 OTA listener accessibility
+- Create reliable OTA update process
+- Document OTA troubleshooting
 
 **Acceptance**:
-- MacBook runs with lid closed
-- Audio capture works with lid closed
-- External display shows party interface
-- No screen saver or sleep during party
-- Touchscreen input works correctly
-- Can recover from display issues
+- OTA updates work from WSL2
+- Process is reliable and documented
+- Troubleshooting guide available
 
 **Test**:
-- Close MacBook lid, verify external display works
-- Test audio capture with lid closed
-- Leave running for 6+ hours
-- Test touchscreen input
-- Test recovery from display sleep
+- Upload firmware via OTA from WSL2
+- Verify ESP32 nodes update successfully
+- Test with different network configurations
 
 **Estimated Time**: 2-3 hours
 
 ---
 
-### T-035: Party Mode Deployment & Testing
+### T-011: Complete Travel Router Setup
 **Status**: TODO  
-**Priority**: HIGH  
-**Goal**: End-to-end testing and deployment for party night.
+**Priority**: MEDIUM  
+**Goal**: GL-iNet router configured for party network
+
+**Context**: Router setup started but not completed
 
 **Tasks**:
-- Create `scripts/party_deploy.sh` for MacBook setup
-- Add party mode configuration:
-  - Disable notifications
-  - Set high performance mode
-  - Configure network priorities
-  - Set up monitoring/logging
-- Create emergency procedures:
-  - Quick restart script
-  - Fallback to debug mode
-  - Manual override controls
-- Add party night checklist
-- Create backup plan (what if MacBook fails?)
+- Complete GL-iNet router configuration
+- Set up Tailscale on router for unRAID access
+- Test end-to-end network connectivity
+- Document router configuration
+- Create router troubleshooting guide
 
 **Acceptance**:
-- One-command deployment to party mode
-- System runs reliably for 6+ hours
-- Emergency procedures work
-- Backup plan is ready
-- Party night checklist is complete
+- Router hosts stable local network
+- Tailscale connection to unRAID works
+- All devices can communicate reliably
+- Configuration is documented
 
 **Test**:
-- Run full party simulation (6+ hours)
-- Test emergency procedures
-- Verify backup plan works
-- Complete party night checklist
+- Test laptop and ESP32 connectivity
+- Verify Tailscale connection
+- Test Whisper service access
 
 **Estimated Time**: 2-3 hours
 
 ---
 
-## Deferred (Post-Party)
+## 📋 EXECUTION PRIORITY (TODAY - Next Few Hours)
 
-These are valuable but not critical for party night:
+### Phase 1: Testing Infrastructure (IMMEDIATE)
+1. **T-001**: Establish comprehensive test suite
+2. **T-002**: Debug MQTT issues through testing
 
-- **T-021-T027**: Pi hub tickets (Pi is dead)
-- **T-018**: Generic node auto-discovery (nice-to-have)
-- **T-001**: Loudness sparkline (polish)
-- **T-002**: Mood detection (future enhancement)
-- **Sensor debugging**: Fix INMP441 wiring issues (post-party)
-- **LED refinement**: Mode adjustments (working well enough)
+### Phase 2: Repository Cleanup (IMMEDIATE)  
+3. **T-003**: Remove MacBook-specific code
+4. **T-004**: Remove Windows-specific code
+5. **T-005**: Consolidate documentation
 
----
+### Phase 3: Standardization (FOLLOWING)
+6. **T-006**: Standardize MQTT topic structure
+7. **T-007**: Fix Party UI content display
 
-## Execution Plan (3 Days to Party)
-
-### Day 1: Foundation (8-10 hours)
-1. ✅ **T-028** - MacBook service stack (morning)
-2. ✅ **T-029** - MacBook audio bridge (afternoon)
-3. ✅ **T-030** - Multi-node support (evening)
-4. **Checkpoint**: MacBook running all services, 3 nodes connected, audio transcription working
-
-### Day 2: Interface & Intelligence (8-10 hours)
-5. ✅ **T-031** - Party interface UI (morning)
-6. ✅ **T-032** - LLM agent service (afternoon)
-7. ✅ **T-033** - Robust data processing (evening)
-8. **Checkpoint**: Compelling interface with intelligent observations, works with unreliable sensors
-
-### Day 3: Polish & Deploy (6-8 hours)
-9. ✅ **T-034** - Touchscreen setup (morning)
-10. ✅ **T-035** - Party mode deployment (afternoon)
-11. **Checkpoint**: Ready for party night, tested for 6+ hours
-
-**Total**: 22-28 hours over 3 days
+### Phase 4: Polish and Infrastructure (LATER)
+8. **T-008**: Improve Debug UI performance
+9. **T-009**: Fix OTA updates from WSL2
+10. **T-010**: Complete travel router setup
 
 ---
 
-## Key Design Principles
+## 🎯 SUCCESS CRITERIA
 
-### Unreliable Narrator Aesthetic
-- **Playful, confident, untrustworthy**
-- Show partial information
-- Inject plausible but uncertain data
-- Use confidence indicators
-- Embrace sensor failures as part of the experience
-
-### Robust Operation
-- **Works with 0-3 sensors**
-- Graceful degradation
-- 6+ hour runtime
-- Closed-lid MacBook operation
-- Emergency recovery procedures
-
-### Party-Ready Interface
-- **7" touchscreen optimized**
-- Large, readable text
-- Touch-friendly interactions
-- Full-screen, no browser chrome
-- Compelling even when sensors fail
-
----
-
-## Success Criteria
-
-**Party-ready when**:
-- [ ] MacBook runs all services with lid closed
-- [ ] 7" touchscreen shows compelling interface
-- [ ] Audio transcription works via Tailscale
-- [ ] 3 ESP32 nodes supported (even if unreliable)
-- [ ] LLM generates unsettling observations
-- [ ] System works with garbage sensor data
-- [ ] Runs for 6+ hours without intervention
-- [ ] Emergency procedures tested
-- [ ] Backup plan ready
+**System is ready when**:
+- [ ] LLM messages appear in MQTT Debugger
+- [ ] Party UI displays LLM content
+- [ ] MQTT topic structure is consistent
+- [ ] Repository is clean and well-documented
+- [ ] Test suite is comprehensive and reliable
+- [ ] New developers can contribute without confusion
 
 **The machine whispers what it hears, even when it's not sure what it heard.** 🎭
