@@ -18,7 +18,7 @@ from pydantic import BaseModel
 from robust_data_processor import DataProcessor, ErrorRecoveryManager
 
 HOUSE_ID = os.getenv("HOUSE_ID", "houseA")
-BROKER_HOST = os.getenv("BROKER_HOST", "mosquitto")
+BROKER_HOST = os.getenv("BROKER_HOST", os.getenv("MQTT_BROKER", "mosquitto"))
 BROKER_PORT = int(os.getenv("BROKER_PORT", "1883"))
 
 TOPIC_BASE = f"party/{HOUSE_ID}"
