@@ -4,6 +4,182 @@
 
 ---
 
+## 🚨 CRITICAL PATH: WSL2 Party Interface Issues (Current Session)
+
+**Context**: WSL2 services are running but multiple critical issues need immediate attention for party readiness.
+
+### T-036: Fix Party UI Aesthetic and Responsiveness
+**Status**: TODO  
+**Priority**: CRITICAL  
+**Goal**: Redesign party UI for 1024x600 touchscreen with sophisticated, subtle aesthetic.
+
+**Tasks**:
+- Remove "WHISPERING MACHINE" jittery title (1990s nightmare)
+- Remove "PARTY MODE - UNRELIABLE NARRATOR" subtitle
+- Remove explicit labels like "this panel contains transcripts" and "this box contains AI observations"
+- Redesign with subtle, classy, sophisticated aesthetic
+- Make responsive for 1024x600 display
+- Reuse debug UI components where appropriate
+- Remove pale background, use better color scheme
+- Make content self-explanatory without labels
+
+**Acceptance**:
+- UI looks sophisticated and subtle on 1024x600 touchscreen
+- No explicit labels telling users what things are
+- Content is self-explanatory through design
+- Responsive layout works properly
+- Aesthetic matches debug UI quality
+
+**Test**:
+- Load on 1024x600 touchscreen
+- Verify no explicit labels
+- Test touch interactions
+- Compare aesthetic to debug UI
+
+**Estimated Time**: 3-4 hours
+
+---
+
+### T-037: Fix MQTT Connection Issues
+**Status**: TODO  
+**Priority**: CRITICAL  
+**Goal**: Resolve MQTT connectivity problems preventing ESP32 nodes from connecting.
+
+**Tasks**:
+- Investigate why MQTT shows red status in debug/party UI
+- Fix mosquitto port configuration (currently 1883:1883 AND 1884:1884)
+- Ensure ESP32 nodes can connect to broker at 192.168.50.240:1883
+- Test MQTT message flow from ESP32 to UI
+- Fix any authentication or network issues
+
+**Acceptance**:
+- MQTT status shows green in debug/party UI
+- ESP32 nodes successfully connect to broker
+- Messages flow from ESP32 → MQTT → UI
+- Debug page shows incoming messages
+
+**Test**:
+- Check MQTT status in debug UI
+- Monitor MQTT messages: `mosquitto_sub -h localhost -t "party/+/+/+/+"`
+- Test ESP32 node connection
+- Verify message flow end-to-end
+
+**Estimated Time**: 2-3 hours
+
+---
+
+### T-038: Fix Whisper and LLM Agent Services
+**Status**: TODO  
+**Priority**: HIGH  
+**Goal**: Get Whisper transcription and LLM agent services working properly.
+
+**Tasks**:
+- Fix Whisper service connection (currently red status)
+- Fix LLM agent service (currently red status)
+- Ensure proper Tailscale integration for Whisper
+- Test audio transcription flow
+- Test LLM observation generation
+
+**Acceptance**:
+- Whisper status shows green in party UI
+- LLM agent status shows green in party UI
+- Audio transcription works end-to-end
+- LLM observations appear in UI
+
+**Test**:
+- Check service status in party UI
+- Test audio capture and transcription
+- Verify LLM observations appear
+- Monitor service logs
+
+**Estimated Time**: 2-3 hours
+
+---
+
+### T-039: Install PlatformIO in WSL2 Environment
+**Status**: TODO  
+**Priority**: HIGH  
+**Goal**: Enable ESP32 firmware development and OTA updates from WSL2.
+
+**Tasks**:
+- Install PlatformIO in WSL2 environment
+- Configure for ESP32 development
+- Test USB and OTA upload capabilities
+- Update ESP32 node configurations
+- Test firmware updates
+
+**Acceptance**:
+- PlatformIO installed and working in WSL2
+- Can upload firmware via USB and OTA
+- ESP32 nodes respond to updates
+- Development workflow works smoothly
+
+**Test**:
+- Install PlatformIO
+- Test `pio run -e node1-usb -t upload`
+- Test `pio run -e node1-ota -t upload`
+- Verify ESP32 nodes update successfully
+
+**Estimated Time**: 1-2 hours
+
+---
+
+### T-040: Configure GL-iNet Travel Router Network
+**Status**: TODO  
+**Priority**: HIGH  
+**Goal**: Set up travel router for party network with Tailscale integration.
+
+**Tasks**:
+- Configure GL-iNet router to host local WiFi network
+- Set up laptop to connect to router network
+- Configure ESP32 nodes to connect to router network
+- Set up Tailscale connection for Whisper service
+- Test end-to-end network connectivity
+
+**Acceptance**:
+- Router hosts local WiFi network
+- Laptop connects to router network
+- ESP32 nodes connect to router network
+- Tailscale connection works for Whisper
+- All devices can communicate
+
+**Test**:
+- Configure router settings
+- Test device connections
+- Verify Tailscale connectivity
+- Test ESP32 → MQTT → UI flow
+
+**Estimated Time**: 2-3 hours
+
+---
+
+### T-041: Fix Debug Mode Activation Mystery
+**Status**: TODO  
+**Priority**: MEDIUM  
+**Goal**: Understand and fix debug mode activation behavior.
+
+**Tasks**:
+- Investigate why debug mode shows "Debug mode active" vs "Touch to interact"
+- Fix inconsistent debug mode behavior
+- Ensure touch interactions work properly
+- Remove confusing debug mode indicators
+
+**Acceptance**:
+- Debug mode behavior is consistent
+- Touch interactions work reliably
+- No confusing debug mode indicators
+- Clear interaction feedback
+
+**Test**:
+- Test debug mode activation
+- Test touch interactions
+- Verify consistent behavior
+- Check interaction feedback
+
+**Estimated Time**: 1 hour
+
+---
+
 ## 🚨 CRITICAL PATH: MacBook Party Interface (3 Days to Party)
 
 **Architecture**: MacBook runs all services, drives 7" touchscreen, connects to ESP32 nodes + Whisper via Tailscale. Interface must be robust to unreliable sensors and work standalone for 6+ hours.
