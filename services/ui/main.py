@@ -41,10 +41,15 @@ _loop: asyncio.AbstractEventLoop | None = None
 
 
 def on_connect(client, userdata, flags, reason_code, properties=None):
+    print(f"[UI] on_connect called with reason_code: {reason_code}")
     if reason_code == 0:
         print(f"[UI] Connected to MQTT broker successfully")
-        client.subscribe(STATE_TOPIC, qos=0)
-        client.subscribe(RAW_TOPIC, qos=0)
+        print(f"[UI] Subscribing to {STATE_TOPIC}...")
+        result1 = client.subscribe(STATE_TOPIC, qos=1)
+        print(f"[UI] Subscribe result for {STATE_TOPIC}: {result1}")
+        print(f"[UI] Subscribing to {RAW_TOPIC}...")
+        result2 = client.subscribe(RAW_TOPIC, qos=1)
+        print(f"[UI] Subscribe result for {RAW_TOPIC}: {result2}")
         print(f"[UI] Subscribed to topics: {STATE_TOPIC}, {RAW_TOPIC}")
     else:
         print(f"[UI] Failed to connect to MQTT broker. Reason code: {reason_code}")

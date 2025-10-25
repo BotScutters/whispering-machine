@@ -74,8 +74,8 @@ export const CONFIG = {
         ENCODER: /^party\/[^/]+\/([^/]+)\/input\/encoder$/,
         BUTTON: /^party\/[^/]+\/([^/]+)\/input\/button$/,
         HEARTBEAT: /^party\/[^/]+\/([^/]+)\/sys\/heartbeat$/,
-        LLM_OBSERVATIONS: /^party\/[^/]+\/llm_agent\/observations\/observation$/,
-        LLM_TRANSCRIPTS: /^party\/[^/]+\/llm_agent\/transcripts\/transcript$/
+        LLM_OBSERVATIONS: /^party\/([^/]+)\/llm_agent\/observations\/observation$/,
+        LLM_TRANSCRIPTS: /^party\/([^/]+)\/llm_agent\/transcripts\/transcript$/
     },
 
     // Chart Configuration
