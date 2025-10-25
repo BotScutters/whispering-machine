@@ -83,6 +83,11 @@ export class MQTTClient {
     routeMessage(data) {
         const { topic, payload } = data;
         
+        // Debug logging for LLM messages
+        if (topic.includes('llm_agent')) {
+            console.log('[MQTT] LLM message received:', topic, payload);
+        }
+        
         // Mark MQTT as connected when we receive messages
         if (!this.stateManager.get('connection.mqtt')) {
             this.stateManager.update('connection.mqtt', true);

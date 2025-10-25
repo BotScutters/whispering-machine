@@ -76,7 +76,14 @@ export class MQTTDebugger extends BaseComponent {
             this.messages = this.messages.slice(0, this.maxMessages);
         }
         
-        this.renderMessage(timestamp, topic, payload);
+        // Throttle rendering to avoid performance issues
+        if (!this.renderThrottle) {
+            this.renderThrottle = true;
+            requestAnimationFrame(() => {
+                this.renderMessage(timestamp, topic, payload);
+                this.renderThrottle = false;
+            });
+        }
     }
 
     /**

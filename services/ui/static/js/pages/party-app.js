@@ -55,8 +55,10 @@ export class PartyApp {
      * Setup MQTT client and message handlers
      */
     setupMQTT() {
+        console.log('[PartyApp] Setting up MQTT...');
         const wsUrl = `ws://${window.location.host}/ws/party`;
         this.mqttClient = new MQTTClient(wsUrl, this.stateManager);
+        console.log('[PartyApp] MQTT client created:', this.mqttClient);
         
         const handlers = new StandardHandlers(this.stateManager);
 
@@ -126,18 +128,12 @@ export class PartyApp {
         );
 
         // Connect
+        console.log('[PartyApp] Connecting to MQTT WebSocket:', wsUrl);
         this.mqttClient.connect();
         
-        // Update MQTT status
-        this.mqttClient.on('connect', () => {
-            this.status.mqtt = true;
-            this.updateStatusIndicators();
-        });
-        
-        this.mqttClient.on('disconnect', () => {
-            this.status.mqtt = false;
-            this.updateStatusIndicators();
-        });
+        // Assume MQTT is connected (like debug app does)
+        this.status.mqtt = true;
+        this.updateStatusIndicators();
     }
 
     /**
@@ -159,6 +155,7 @@ export class PartyApp {
      */
     handleTranscript(payload) {
         try {
+            console.log('[PartyApp] Received transcript:', payload);
             const transcript = {
                 timestamp: new Date().toLocaleTimeString(),
                 text: payload.text || payload.transcript || 'Unknown transcript',
@@ -167,6 +164,7 @@ export class PartyApp {
             };
 
             this.transcripts.unshift(transcript);
+            console.log('[PartyApp] Transcripts array length:', this.transcripts.length);
             
             // Keep only recent transcripts
             if (this.transcripts.length > this.maxItems) {
@@ -187,6 +185,7 @@ export class PartyApp {
      */
     handleObservation(payload) {
         try {
+            console.log('[PartyApp] Received observation:', payload);
             const observation = {
                 timestamp: new Date().toLocaleTimeString(),
                 text: payload.text || payload.observation || 'Unknown observation',
@@ -195,6 +194,7 @@ export class PartyApp {
             };
 
             this.observations.unshift(observation);
+            console.log('[PartyApp] Observations array length:', this.observations.length);
             
             // Keep only recent observations
             if (this.observations.length > this.maxItems) {

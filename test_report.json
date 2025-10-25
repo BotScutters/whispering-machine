@@ -1,0 +1,19 @@
+{
+  "unit_tests": {
+    "ui": {
+      "passed": true,
+      "details": "Unit tests completed"
+    },
+    "llm_agent": {
+      "passed": true,
+      "details": "Unit tests completed"
+    }
+  },
+  "integration_tests": {
+    "mqtt_connectivity": true,
+    "service_communication": true,
+    "web_interfaces": true
+  },
+  "coverage": {},
+  "overall_success": false
+}

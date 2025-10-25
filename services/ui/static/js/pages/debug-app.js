@@ -179,6 +179,23 @@ export class DebugApp {
             }
         );
 
+        // Register handlers for LLM messages
+        this.mqttClient.registerHandler(
+            CONFIG.TOPIC_PATTERNS.LLM_OBSERVATIONS,
+            (nodeId, payload, topic) => {
+                console.log('[DebugApp] LLM Observation:', topic, payload);
+                this.components.mqttDebugger.addMessage(topic, payload);
+            }
+        );
+
+        this.mqttClient.registerHandler(
+            CONFIG.TOPIC_PATTERNS.LLM_TRANSCRIPTS,
+            (nodeId, payload, topic) => {
+                console.log('[DebugApp] LLM Transcript:', topic, payload);
+                this.components.mqttDebugger.addMessage(topic, payload);
+            }
+        );
+
         // Connect
         this.mqttClient.connect();
     }
