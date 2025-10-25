@@ -23,22 +23,31 @@ from docker.errors import ContainerError, ImageNotFound
 class TestConfig:
     """Test configuration and constants"""
     
-    # Service configurations
+    # Service configurations (matching wsl2/compose.yml)
     SERVICES = {
         'aggregator': {
             'port': 8000,
             'health_endpoint': '/health',
-            'test_file': 'test_multi_node.py'
+            'test_file': 'test_multi_node.py',
+            'container_name': 'wsl2_aggregator'
         },
         'ui': {
             'port': 8000,
             'health_endpoint': '/',
-            'test_file': None  # UI tests are integration tests
+            'test_file': None,  # UI tests are integration tests
+            'container_name': 'wsl2_ui'
         },
-        'display_manager': {
+        'llm_agent': {
             'port': 8000,
             'health_endpoint': '/health',
-            'test_file': None  # Needs integration tests
+            'test_file': None,  # Needs integration tests
+            'container_name': 'wsl2_llm_agent'
+        },
+        'wsl2_display_manager': {
+            'port': 8000,
+            'health_endpoint': '/health',
+            'test_file': None,  # Needs integration tests
+            'container_name': 'wsl2_display_manager'
         }
     }
     
@@ -64,7 +73,7 @@ class ServiceTester:
         """Start service container for testing"""
         try:
             # Build service image
-            image_name = f"infra-{self.service_name}"
+            image_name = f"wsl2-{self.service_name}"
             print(f"Building {self.service_name} service...")
             
             # Use docker build directly (more reliable than compose build)
@@ -96,7 +105,7 @@ class ServiceTester:
             
             # Start new container with appropriate network
             if self.is_docker_mode:
-                # In Docker mode, use the infra_default network
+                # In Docker mode, use the whispering-machine-wsl2 network
                 self.container = self.docker_client.containers.run(
                     image_name,
                     name=container_name,
@@ -108,7 +117,7 @@ class ServiceTester:
                         'BROKER_PORT': '1883',
                         'LOG_LEVEL': 'DEBUG'
                     },
-                    network='infra_default'
+                    network='whispering-machine-wsl2'
                 )
             else:
                 # In host mode, use default bridge network
@@ -262,7 +271,7 @@ class IntegrationTester:
         """Test MQTT broker connectivity"""
         try:
             # Check if mosquitto container is running
-            mosquitto = self.docker_client.containers.get('wm_mosquitto')
+            mosquitto = self.docker_client.containers.get('mosquitto')
             if mosquitto.status != 'running':
                 print("❌ MQTT broker not running")
                 return False
@@ -281,13 +290,13 @@ class IntegrationTester:
         """Test inter-service communication"""
         try:
             # Test aggregator -> MQTT
-            aggregator = self.docker_client.containers.get('wm_aggregator')
+            aggregator = self.docker_client.containers.get('wsl2_aggregator')
             if aggregator.status != 'running':
                 print("❌ Aggregator service not running")
                 return False
             
             # Test UI -> MQTT
-            ui = self.docker_client.containers.get('wm_ui')
+            ui = self.docker_client.containers.get('wsl2_ui')
             if ui.status != 'running':
                 print("❌ UI service not running")
                 return False
@@ -306,7 +315,7 @@ class IntegrationTester:
         """Test web interface accessibility"""
         try:
             # Test UI service
-            ui = self.docker_client.containers.get('wm_ui')
+            ui = self.docker_client.containers.get('wsl2_ui')
             ui.reload()
             ports = ui.attrs['NetworkSettings']['Ports']
             
@@ -380,14 +389,26 @@ class TestRunner:
     def start_infrastructure(self) -> bool:
         """Start required infrastructure (MQTT broker)"""
         try:
+            print("🚀 Checking infrastructure...")
+            
+            # Check if mosquitto is already running
+            docker_client = docker.from_env()
+            try:
+                mosquitto = docker_client.containers.get('mosquitto')
+                if mosquitto.status == 'running':
+                    print("✅ MQTT broker already running")
+                    return True
+            except docker.errors.NotFound:
+                pass
+            
             print("🚀 Starting infrastructure...")
             
             # Determine compose file path based on mode
             if os.getenv('TEST_MODE') == 'docker':
-                compose_file = '/workspace/infra/docker-compose.yml'
+                compose_file = '/workspace/wsl2/compose.yml'
                 work_dir = '/workspace'
             else:
-                compose_file = 'infra/docker-compose.yml'
+                compose_file = 'wsl2/compose.yml'
                 work_dir = Path.cwd()
             
             # Start mosquitto
@@ -538,10 +559,10 @@ class TestRunner:
             
             # Determine compose file path based on mode
             if os.getenv('TEST_MODE') == 'docker':
-                compose_file = '/workspace/infra/docker-compose.yml'
+                compose_file = '/workspace/wsl2/compose.yml'
                 work_dir = '/workspace'
             else:
-                compose_file = 'infra/docker-compose.yml'
+                compose_file = 'wsl2/compose.yml'
                 work_dir = Path.cwd()
             
             if os.getenv('TEST_MODE') == 'docker':

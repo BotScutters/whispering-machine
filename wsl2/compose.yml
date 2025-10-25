@@ -1,7 +1,7 @@
 services:
   mosquitto:
     image: eclipse-mosquitto:2
-    container_name: wsl2_mosquitto
+    container_name: mosquitto
     ports:
       - "1883:1883"
       - "1884:1884"
@@ -38,7 +38,7 @@ services:
       mosquitto:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
       interval: 30s
       timeout: 10s
       retries: 3

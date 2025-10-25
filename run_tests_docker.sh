@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 """
-Docker-based Test Runner for unRAID
+Docker-based Test Runner for WSL2
 
-All testing runs inside Docker containers since we're on unRAID.
+All testing runs inside Docker containers since we're on WSL2.
 """
 
 set -e
 
-echo "🧪 Whispering Machine - Docker Test Runner (unRAID)"
+echo "🧪 Whispering Machine - Docker Test Runner (WSL2)"
 echo "=================================================="
 
 # Check if Docker is available
@@ -50,7 +50,7 @@ COPY pyproject.toml .
 
 # Copy service directories for testing
 COPY services/ services/
-COPY infra/ infra/
+COPY wsl2/ wsl2/
 
 # Set up test environment
 ENV PYTHONPATH=/app
@@ -63,18 +63,20 @@ EOF
 echo "📦 Building test runner image..."
 docker build -f Dockerfile.test -t whispering-machine-test-runner .
 
-# Start infrastructure
+# Start infrastructure (only if not already running)
 echo "🚀 Starting test infrastructure..."
-docker compose -f infra/docker-compose.yml up -d mosquitto
-
-# Wait for mosquitto to be ready
-echo "⏳ Waiting for MQTT broker..."
-sleep 10
+if ! docker ps --format "{{.Names}}" | grep -q "mosquitto"; then
+    docker compose -f wsl2/compose.yml up -d mosquitto
+    echo "⏳ Waiting for MQTT broker..."
+    sleep 10
+else
+    echo "✅ MQTT broker already running"
+fi
 
 # Run the test suite in Docker
 echo "🧪 Running test suite in Docker container..."
 docker run --rm \
-    --network infra_default \
+    --network whispering-machine-wsl2 \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v $(pwd):/workspace \
     -w /workspace \
@@ -91,7 +93,7 @@ fi
 
 # Cleanup
 echo "🧹 Cleaning up..."
-docker compose -f infra/docker-compose.yml down
+docker compose -f wsl2/compose.yml down
 docker rmi whispering-machine-test-runner 2>/dev/null || true
 rm -f Dockerfile.test
 
