@@ -41,3 +41,4 @@ echo "  Version: $VERSION"
 echo "  Git SHA: $GIT_SHA"
 echo "  Git Branch: $GIT_BRANCH"
 echo "  Build UTC: $BUILD_UTC"
+

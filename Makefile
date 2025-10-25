@@ -14,6 +14,9 @@ help:
 	@echo "  upload-node1    Upload firmware to Node1 via OTA"
 	@echo "  upload-node2    Upload firmware to Node2 via OTA"
 	@echo "  upload-node3    Upload firmware to Node3 via OTA"
+	@echo "  upload-node1-usb Upload firmware to Node1 via USB"
+	@echo "  upload-node2-usb Upload firmware to Node2 via USB"
+	@echo "  upload-node3-usb Upload firmware to Node3 via USB"
 	@echo "  monitor-node1   Monitor Node1 serial output"
 	@echo "  monitor-node2   Monitor Node2 serial output"
 	@echo "  monitor-node3   Monitor Node3 serial output"
@@ -38,6 +41,7 @@ help:
 	@echo "  test-mqtt       Test MQTT message flow"
 	@echo "  check-config    Validate configuration files"
 	@echo "  check-ota-all   Check OTA availability for all nodes"
+	@echo "  check-usb-port  Check USB port availability"
 
 # PlatformIO path
 PIO_PATH = ~/.local/bin
@@ -73,6 +77,39 @@ upload-node2: build-node2
 upload-node3: build-node3
 	@echo "Uploading Node3 firmware via OTA..."
 	cd firmware/wm_node && PATH="$(HOME)/.local/bin:$$PATH" pio run -e node3-ota -t upload
+
+# Check USB port availability
+check-usb-port:
+	@echo "Checking USB port availability..."
+	@if [ ! -e /dev/ttyUSB0 ] && [ ! -e /dev/ttyACM0 ]; then \
+		echo ""; \
+		echo "❌ No USB serial devices found!"; \
+		echo ""; \
+		echo "🔧 To share USB device with WSL2:"; \
+		echo "   1. Open PowerShell as Administrator"; \
+		echo "   2. List devices: usbipd wsl list"; \
+		echo "   3. Attach device: usbipd attach --wsl --busid <BUSID>"; \
+		echo ""; \
+		echo "   Example: usbipd attach --wsl --busid 2-3"; \
+		echo ""; \
+		echo "💡 Note: You may need to re-attach after WSL2 restarts"; \
+		echo ""; \
+		exit 1; \
+	fi
+	@echo "✅ USB port detected: $$(ls /dev/ttyUSB* /dev/ttyACM* 2>/dev/null | head -1)"
+
+# Upload firmware via USB
+upload-node1-usb: generate-version check-usb-port
+	@echo "Uploading Node1 firmware via USB..."
+	cd firmware/wm_node && PATH="$(HOME)/.local/bin:$$PATH" pio run -e node1-usb -t upload
+
+upload-node2-usb: generate-version check-usb-port
+	@echo "Uploading Node2 firmware via USB..."
+	cd firmware/wm_node && PATH="$(HOME)/.local/bin:$$PATH" pio run -e node2-usb -t upload
+
+upload-node3-usb: generate-version check-usb-port
+	@echo "Uploading Node3 firmware via USB..."
+	cd firmware/wm_node && PATH="$(HOME)/.local/bin:$$PATH" pio run -e node3-usb -t upload
 
 # Monitor serial output
 monitor-node1:
