@@ -1,0 +1,1 @@
+{"type":"object","properties":{"text":{"type":"string"},"confidence":{"type":"number"},"source":{"type":"string"},"timestamp":{"type":"number"},"ts_ms":{"type":"number"}},"required":["text","confidence","source","ts_ms"]}

@@ -110,18 +110,18 @@ export class PartyApp {
             }
         );
 
-        // Register handlers for new party-specific topics
+        // Register handlers for LLM agent content
         this.mqttClient.registerHandler(
-            'party/+/macbook/speech/transcript',
+            CONFIG.TOPIC_PATTERNS.LLM_OBSERVATIONS,
             (nodeId, payload, topic) => {
-                this.handleTranscript(payload);
+                this.handleObservation(payload);
             }
         );
 
         this.mqttClient.registerHandler(
-            'party/+/llm_agent/observations/observation',
+            CONFIG.TOPIC_PATTERNS.LLM_TRANSCRIPTS,
             (nodeId, payload, topic) => {
-                this.handleObservation(payload);
+                this.handleTranscript(payload);
             }
         );
 
@@ -214,7 +214,7 @@ export class PartyApp {
      * Update transcript display
      */
     updateTranscriptDisplay() {
-        const container = document.getElementById('observationsDisplay');
+        const container = document.getElementById('transcriptsDisplay');
         if (!container) return;
 
         if (this.transcripts.length === 0) {

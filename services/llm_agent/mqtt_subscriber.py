@@ -29,11 +29,14 @@ class MQTTSubscriber:
         self.connected = False
         
         # MQTT client
-        self.client = mqtt.Client()
+        import uuid
+        client_id = f"wm-llm-agent-{uuid.uuid4().hex[:8]}"
+        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=client_id)
         self.client.on_connect = self._on_connect
         self.client.on_disconnect = self._on_disconnect
         self.client.on_message = self._on_message
         self.client.on_publish = self._on_publish
+        logger.info(f"MQTT client ID: {client_id}")
         
         logger.info(f"MQTT subscriber initialized: {broker}:{port}, house={house_id}")
     

@@ -131,6 +131,13 @@
             margin-bottom: 0.5rem;
         }
 
+        .content-scroll {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 200px;
+            margin-bottom: 1rem;
+        }
+
         .timestamp {
             font-size: 0.7rem;
             color: #666;
@@ -261,11 +268,15 @@
             <div id="sensorStatus" class="content-text"></div>
         </div>
 
-        <!-- Right Panel - Observations -->
+        <!-- Right Panel - Content -->
         <div class="content-panel right-panel">
-            <div class="content-title">Observations</div>
-            <div id="observationsDisplay">
+            <div class="content-title">Transcripts</div>
+            <div id="transcriptsDisplay" class="content-scroll">
                 <div class="content-text">Listening...</div>
+            </div>
+            <div class="content-title">Observations</div>
+            <div id="observationsDisplay" class="content-scroll">
+                <div class="content-text">Observing...</div>
             </div>
         </div>
 

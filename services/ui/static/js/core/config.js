@@ -73,7 +73,9 @@ export const CONFIG = {
         RING_STATE: /^party\/[^/]+\/([^/]+)\/ring\/state$/,
         ENCODER: /^party\/[^/]+\/([^/]+)\/input\/encoder$/,
         BUTTON: /^party\/[^/]+\/([^/]+)\/input\/button$/,
-        HEARTBEAT: /^party\/[^/]+\/([^/]+)\/sys\/heartbeat$/
+        HEARTBEAT: /^party\/[^/]+\/([^/]+)\/sys\/heartbeat$/,
+        LLM_OBSERVATIONS: /^party\/[^/]+\/llm_agent\/observations\/observation$/,
+        LLM_TRANSCRIPTS: /^party\/[^/]+\/llm_agent\/transcripts\/transcript$/
     },
 
     // Chart Configuration
