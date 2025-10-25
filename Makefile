@@ -197,7 +197,7 @@ deploy-all: build-node1 build-node2 build-node3 upload-node1 upload-node2 upload
 # Diagnostic commands
 check-ota-node1:
 	@echo "Checking Node1 OTA availability..."
-	@timeout 3 bash -c 'echo > /dev/tcp/192.168.50.86/3232' && echo "✅ Node1 OTA port open" || echo "❌ Node1 OTA port closed"
+	@timeout 3 bash -c 'echo > /dev/tcp/192.168.8.143/3232' && echo "✅ Node1 OTA port open" || echo "❌ Node1 OTA port closed"
 
 check-ota-node2:
 	@echo "Checking Node2 OTA availability..."

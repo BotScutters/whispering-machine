@@ -152,7 +152,7 @@ build_flags = ${common_env_data.build_flags} -D WM_NODE_ID=\"node1\"
 [env:node1-ota]
 extends = env:base-ota
 build_flags = ${common_env_data.build_flags} -D WM_NODE_ID=\"node1\"
-upload_port = 192.168.50.210
+upload_port = 192.168.8.143
 
 ; Duplicate for node2..node5 with new WM_NODE_ID and upload_port
 ```

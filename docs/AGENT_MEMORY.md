@@ -63,6 +63,14 @@
 - **Links**: `macbook/compose.yml`, `docs/ARCHITECTURE.md`
 - **Tags**: `#macbook` `#architecture` `#production` `#deployment`
 
+### 2025-01-27: Windows Firewall Blocks Docker Port Forwarding
+- **What Happened**: ESP32 nodes getting `MQTT_CONNECT_FAILED` (-2) when trying to connect to Windows host's whispernet IP, even though Docker was exposing port 1883
+- **Root Cause**: Windows Firewall was blocking external connections to port 1883, even though Docker Desktop was properly forwarding the port
+- **Rule/Lesson**: **🚨 CRITICAL: Windows Firewall must allow port 1883 for external connections** when using Docker Desktop port forwarding. Either disable Windows Firewall temporarily or create specific allow rules for port 1883
+- **Impact**: ESP32 nodes cannot connect to MQTT broker, breaking the entire sensor network
+- **Links**: commit 25994a4 (enhanced debugging), whispernet setup
+- **Tags**: `#windows` `#firewall` `#docker` `#mqtt` `#esp32` `#networking`
+
 ## Memory Categories
 
 ### MQTT Patterns
