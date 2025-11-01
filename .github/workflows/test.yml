@@ -2,11 +2,6 @@ name: Whispering Machine Test Suite
 
 on:
   push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
-  schedule:
-    - cron: '0 2 * * *'  # Daily at 2 AM
 
 jobs:
   test:
@@ -33,18 +28,29 @@ jobs:
     
     - name: Install system dependencies
       run: |
+        # Keep output and fail early on unexpected errors
+        set -euxo pipefail
+
+        # Minimal packages for fetching binaries
         sudo apt-get update
-        # Install Docker engine
-        sudo apt-get install -y docker.io
-        sudo systemctl start docker
-        sudo usermod -aG docker $USER
+        sudo apt-get install -y curl ca-certificates || true
+
+        # Prefer the Docker already provided by the runner (avoids package conflicts).
+        if ! command -v docker >/dev/null 2>&1; then
+          echo "docker not found; attempting apt install docker.io as a fallback (may fail on some images)"
+          sudo apt-get install -y docker.io || true
+        fi
+
+        if ! command -v docker >/dev/null 2>&1; then
+          echo "docker still not available; please ensure the runner provides Docker or update the workflow to install Docker from Docker's official repository."
+          exit 1
+        fi
 
         # Install Docker Compose CLI plugin (official binary)
         DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
-        mkdir -p $DOCKER_CONFIG/cli-plugins
-        curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 \
-          -o $DOCKER_CONFIG/cli-plugins/docker-compose
-        chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+        mkdir -p "$DOCKER_CONFIG/cli-plugins"
+        curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o "$DOCKER_CONFIG/cli-plugins/docker-compose"
+        chmod +x "$DOCKER_CONFIG/cli-plugins/docker-compose"
 
         # Verify installation
         docker --version
