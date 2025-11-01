@@ -24,9 +24,3 @@ services:
     depends_on: [mosquitto]
     restart: unless-stopped
 
-  display_manager:
-    build: ../services/display_manager
-    container_name: wm_display_manager
-    env_file: ../.env
-    depends_on: [mosquitto]
-    restart: unless-stopped
