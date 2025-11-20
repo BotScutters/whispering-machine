@@ -53,12 +53,20 @@
 
         /* Sophisticated layout for 1024x600 */
         .party-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr auto;
+            display: flex;
+            flex-direction: column;
             height: 100vh;
-            gap: 1rem;
-            padding: 1rem;
+            padding: 0.5rem;
+            overflow: hidden;
+            gap: 0.5rem;
+        }
+
+        .main-content {
+            display: flex;
+            gap: 0.5rem;
+            flex: 1;
+            overflow: hidden;
+            min-height: 0;
         }
 
         /* Main content areas */
@@ -66,34 +74,36 @@
             background: rgba(26, 26, 26, 0.8);
             border: 1px solid #333;
             border-radius: 8px;
-            padding: 1rem;
+            padding: 0.5rem;
             display: flex;
             flex-direction: column;
             backdrop-filter: blur(10px);
+            overflow: hidden;
+            height: 100%;
         }
 
         .left-panel {
-            grid-column: 1;
-            grid-row: 1;
+            flex: 1;
+            min-width: 0;
         }
 
         .right-panel {
-            grid-column: 2;
-            grid-row: 1;
+            flex: 1;
+            min-width: 0;
         }
 
         .status-bar {
-            grid-column: 1 / -1;
-            grid-row: 2;
+            flex-shrink: 0;
             background: rgba(26, 26, 26, 0.9);
             border: 1px solid #333;
             border-radius: 8px;
-            padding: 0.5rem 1rem;
+            padding: 0.25rem 0.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             color: #888;
+            height: 30px;
         }
 
         /* Subtle animations */
@@ -117,25 +127,25 @@
 
         /* Typography */
         .content-title {
-            font-size: 1.2rem;
+            font-size: 0.9rem;
             color: #00ff88;
-            margin-bottom: 1rem;
+            margin-bottom: 0.25rem;
             font-weight: 300;
             letter-spacing: 0.5px;
         }
 
         .content-text {
-            font-size: 0.9rem;
-            line-height: 1.4;
+            font-size: 0.75rem;
+            line-height: 1.2;
             color: #ccc;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
         }
 
         .content-scroll {
             flex: 1;
             overflow-y: auto;
-            max-height: 200px;
-            margin-bottom: 1rem;
+            max-height: 120px;
+            margin-bottom: 0.5rem;
         }
 
         .timestamp {
@@ -148,7 +158,8 @@
         .chart-container {
             flex: 1;
             position: relative;
-            min-height: 200px;
+            min-height: 100px;
+            max-height: 150px;
         }
 
         /* Status indicators */
@@ -259,24 +270,26 @@
 </head>
 <body>
     <div class="party-container">
-        <!-- Left Panel - Sensor Data -->
-        <div class="content-panel left-panel">
-            <div class="content-title">Ambient Signals</div>
-            <div id="sensorDisplay" class="chart-container">
-                <canvas id="audioChart"></canvas>
+        <div class="main-content">
+            <!-- Left Panel - Sensor Data -->
+            <div class="content-panel left-panel">
+                <div class="content-title">Ambient Signals</div>
+                <div id="sensorDisplay" class="chart-container">
+                    <canvas id="audioChart"></canvas>
+                </div>
+                <div id="sensorStatus" class="content-text"></div>
             </div>
-            <div id="sensorStatus" class="content-text"></div>
-        </div>
 
-        <!-- Right Panel - Content -->
-        <div class="content-panel right-panel">
-            <div class="content-title">Transcripts</div>
-            <div id="transcriptsDisplay" class="content-scroll">
-                <div class="content-text">Listening...</div>
-            </div>
-            <div class="content-title">Observations</div>
-            <div id="observationsDisplay" class="content-scroll">
-                <div class="content-text">Observing...</div>
+            <!-- Right Panel - Content -->
+            <div class="content-panel right-panel">
+                <div class="content-title">Transcripts</div>
+                <div id="transcriptsDisplay" class="content-scroll">
+                    <div class="content-text">Listening...</div>
+                </div>
+                <div class="content-title">Observations</div>
+                <div id="observationsDisplay" class="content-scroll">
+                    <div class="content-text">Observing...</div>
+                </div>
             </div>
         </div>
 
@@ -288,7 +301,7 @@
                 <div class="status-dot" id="whisperStatus"></div>
                 <div class="status-dot" id="llmStatus"></div>
             </div>
-            <div id="uptimeCounter" class="timestamp"></div>
+            <div id="uptime" class="timestamp"></div>
         </div>
     </div>
 

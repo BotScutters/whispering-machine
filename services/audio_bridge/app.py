@@ -2,8 +2,8 @@
 """
 Audio Bridge Service
 
-Captures audio from MacBook built-in microphone, sends to Whisper for transcription,
-and publishes transcripts to MQTT. Designed to work with MacBook lid closed.
+Captures audio from system microphone, sends to Whisper for transcription,
+and publishes transcripts to MQTT. Designed for continuous operation.
 """
 
 import asyncio

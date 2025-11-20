@@ -4,6 +4,13 @@
  */
 
 export const CONFIG = {
+    // Node Name Mapping
+    NODE_NAMES: {
+        'node1': 'Dining Room',
+        'node2': 'Second Floor', 
+        'node3': 'Attic'
+    },
+
     // LED Ring Modes
     RING_MODES: {
         0: 'OFF',

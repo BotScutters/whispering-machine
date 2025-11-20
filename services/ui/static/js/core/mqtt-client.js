@@ -36,6 +36,7 @@ export class MQTTClient {
             
             this.ws.onmessage = (event) => {
                 try {
+                    console.log('[MQTT] WebSocket message received:', event.data);
                     const data = JSON.parse(event.data);
                     this.routeMessage(data);
                 } catch (error) {
@@ -83,9 +84,17 @@ export class MQTTClient {
     routeMessage(data) {
         const { topic, payload } = data;
         
+        // Debug logging for all messages
+        console.log('[MQTT] Message received:', topic, payload);
+        
         // Debug logging for LLM messages
         if (topic.includes('llm_agent')) {
             console.log('[MQTT] LLM message received:', topic, payload);
+        }
+        
+        // Debug logging for sensor messages
+        if (topic.includes('audio/features') || topic.includes('occupancy/state') || topic.includes('ring/state')) {
+            console.log('[MQTT] Sensor message received:', topic, payload);
         }
         
         // Mark MQTT as connected when we receive messages

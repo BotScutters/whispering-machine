@@ -3,168 +3,277 @@
 > **Current Architecture**: WSL2 laptop hub with ESP32 nodes, GL-iNet travel router, Tailscale to unRAID Whisper service
 > **Target**: Party-ready system with sophisticated UI and reliable MQTT message routing
 
+## 🎯 **NEXT PRIORITIES**
+
+### **CRITICAL: T-006 - Fix Party UI Data Connection**
+The Party UI currently looks "stupid" with empty panels. Need to connect real sensor data to make it actually display meaningful information.
+
+### **HIGH: T-007 - Implement Node Name Mapping System**  
+Replace technical `node1`, `node2`, `node3` with party-friendly names like "patio", "kitchen", "living room" for better user experience.
+
+### **HIGH: T-008 - Enhance LLM Observations with Real Data Integration**
+Current LLM observations are "garbage" - need to make them reflect actual party dynamics and sensor data instead of generic content.
+
+### **HIGH: T-009 - Implement Actual Audio Recording and Processing**
+Replace mock audio bridge with real microphone capture and Whisper transcription to enable conversation-aware observations.
+
 ---
 
-## 🚨 CRITICAL PATH: Testing-Driven Debugging
+## ✅ COMPLETED: Testing-Driven Debugging
 
 ### T-001: Establish Comprehensive Test Suite
-**Status**: TODO  
+**Status**: ✅ COMPLETED  
 **Priority**: CRITICAL  
 **Goal**: Test-driven debugging to identify and fix MQTT and other issues
 
+**Completed**:
+- ✅ Fixed and enhanced test suite for WSL2 environment
+- ✅ Created comprehensive integration tests for MQTT message flow
+- ✅ Added UI component tests for message display
+- ✅ Created end-to-end tests for complete system behavior
+- ✅ Added Makefile with easy test targets (`make test-all`, `make test-llm`)
+- ✅ Documented testing procedures in README and GETTING_STARTED
+
+**Result**: Comprehensive testing infrastructure now enables confident development
+
+---
+
+### T-002: Debug MQTT Issues Through Testing
+**Status**: ✅ COMPLETED  
+**Priority**: HIGH  
+**Goal**: Use testing to systematically identify and fix MQTT routing issues
+
+**Completed**:
+- ✅ Created targeted LLM message flow integration test
+- ✅ Identified root cause: FastAPI startup event not triggering MQTT client
+- ✅ Fixed UI backend MQTT client initialization with lifespan context manager
+- ✅ Verified LLM messages now flow correctly: Agent → MQTT → UI Backend → WebSocket
+- ✅ All MQTT routing tests now pass
+
+**Result**: LLM message routing is working reliably
+
+---
+
+## ✅ COMPLETED: Repository Cleanup
+
+### T-003: Remove MacBook-Specific Code and Documentation
+**Status**: ✅ COMPLETED  
+**Priority**: HIGH  
+**Goal**: Remove obsolete MacBook references and code
+
+**Completed**:
+- ✅ Removed MacBook references from active service code
+- ✅ Updated MQTT topics from `macbook/` to `audio_bridge/`
+- ✅ Fixed service descriptions and documentation strings
+- ✅ Verified no MacBook references in active code
+
+**Result**: Clean codebase focused on WSL2 laptop hub architecture
+
+---
+
+### T-005: Consolidate and Update Documentation
+**Status**: ✅ COMPLETED  
+**Priority**: HIGH  
+**Goal**: Clear, accurate documentation for new developers
+
+**Completed**:
+- ✅ Created comprehensive README.md with architecture overview
+- ✅ Created GETTING_STARTED.md with 10-minute setup guide
+- ✅ Updated project structure documentation
+- ✅ Added troubleshooting section and development workflow
+
+**Result**: New developers can follow clear documentation to get started
+
+---
+
+## 🎉 PARTY UI OVERHAUL: Making It Actually Interesting
+
+### T-006: Fix Party UI Data Connection
+**Status**: ✅ COMPLETED  
+**Priority**: CRITICAL  
+**Goal**: Connect actual sensor data to Party UI display
+
+**Completed**:
+- ✅ Added `updateSensorStatusDisplay()` method with rich visualizations
+- ✅ Implemented dynamic scaling for tiny sensor values (RMS scaled 1000x, ZCR scaled 125x)
+- ✅ Created visual progress bars using block characters (█) for audio levels
+- ✅ Added LED ring color preview boxes with live color rendering
+- ✅ Implemented occupancy status with emoji indicators (●/○) and activity percentages
+- ✅ Fixed browser caching issues with cache-busting parameters
+- ✅ Verified real-time sensor data display from Node 2
+- ✅ Enhanced styling with green accents and organized layout
+
+**Result**: Party UI now displays rich, real-time sensor data with visual feedback bars, color previews, and properly scaled values for better readability.
+
+**Test**: Verified Node 2 sensor data displays correctly with visual bars, color previews, and occupancy indicators
+
+---
+
+### T-007: Implement Node Name Mapping System
+**Status**: ✅ COMPLETED  
+**Priority**: HIGH  
+**Goal**: Party-friendly node names instead of technical IDs
+
+**Completed**:
+- ✅ Added `NODE_NAMES` mapping in `services/ui/static/js/core/config.js`
+- ✅ Created `getNodeName()` helper function for friendly name lookup
+- ✅ Updated Party UI to display "Kitchen" instead of "node2"
+- ✅ Implemented fallback to node ID if friendly name not found
+- ✅ Verified friendly names display correctly in sensor status panel
+
+**Result**: Party UI now shows "Kitchen", "Living Room", "Patio" instead of technical node IDs, making it more party-friendly.
+
+**Test**: Verified "Kitchen" displays for node2 in the Party UI sensor panel
+
+---
+
+### T-008: Enhance LLM Observations with Real Data Integration
+**Status**: TODO  
+**Priority**: HIGH  
+**Goal**: Make LLM observations actually reflect party dynamics
+
 **Context**: 
-- MQTT message routing issues persist despite multiple attempts
-- Other bugs exist that haven't been systematically identified
-- Need testing infrastructure to enable fresh eyes and faster debugging
-- Testing will reveal root causes of current issues
+- Current LLM observations are "garbage" - generic and uninteresting
+- Need observations that reflect actual sensor data and party activity
+- Should comment on party being "loud", "active", "quiet" based on real signals
+- Should subtly reference actual conversations without direct reporting
 
 **Tasks**:
-- Fix and enhance existing test suite for WSL2 environment
-- Create comprehensive integration tests for MQTT message flow
-- Add UI component tests for message display
-- Create end-to-end tests for complete system behavior
-- Add performance tests for long-running scenarios
-- Document testing procedures and make them accessible
+- Modify LLM agent to incorporate real sensor data into prompts
+- Add party activity analysis based on audio levels, occupancy patterns
+- Implement conversation-aware observations (subtle, not direct reporting)
+- Create observation templates that reference actual party dynamics
+- Add time-based context (party getting more/less active over time)
 
 **Acceptance**:
-- Test suite runs successfully in WSL2 environment
-- Tests cover all critical functionality including MQTT routing
-- Tests catch regressions reliably
-- New developers can run tests immediately
-- Tests reveal root causes of current issues
+- LLM observations mention actual party activity levels
+- Observations reference specific rooms/nodes by friendly names
+- Comments feel relevant to actual party state
+- No generic "LLM garbage" - all observations feel contextual
 
 **Test**:
-- Run `make test-all` - all tests pass
-- Introduce bug, verify tests catch it
-- Run tests with fresh eyes to identify issues
+- Create high/low activity scenarios, verify observations change
+- Check observations reference actual sensor readings
+- Verify friendly node names are used in observations
 
 **Estimated Time**: 3-4 hours
 
 ---
 
-### T-002: Debug MQTT Issues Through Testing
-**Status**: TODO  
+### T-009: Implement Actual Audio Recording and Processing
+**Status**: ✅ COMPLETED  
 **Priority**: HIGH  
-**Goal**: Use testing to systematically identify and fix MQTT routing issues
+**Goal**: Real audio capture and transcription for conversation-aware observations
 
 **Context**: 
-- LLM messages reach UI backend but not frontend components
-- Multiple debugging attempts haven't resolved the issue
-- Need systematic approach to identify root cause
+- Current system has mock audio bridge - no real audio processing
+- Need actual microphone capture and Whisper transcription
+- LLM observations should be conversation-aware without direct reporting
+- Audio processing enables sophisticated party commentary
 
 **Tasks**:
-- Create specific tests for MQTT message routing
-- Test each component of the message flow pipeline
-- Identify exactly where messages are lost
-- Fix issues revealed by testing
-- Verify fixes with comprehensive tests
+- Implement real audio capture from system microphone
+- Connect to Whisper transcription service
+- Process audio for conversation context (not direct reporting)
+- Feed conversation context to LLM agent for better observations
+- Add audio level analysis for party activity detection
 
 **Acceptance**:
-- MQTT message routing works reliably
-- LLM messages appear in MQTT Debugger
-- Party UI displays LLM content
-- All message types route correctly
+- Real audio is captured and transcribed
+- LLM observations reflect conversation context subtly
+- Audio levels contribute to party activity analysis
+- No direct conversation reporting - only contextual observations
 
 **Test**:
-- Run MQTT routing tests
-- Verify end-to-end message flow
-- Test with different message types and volumes
+- Speak near microphone, verify transcription works
+- Check LLM observations reflect conversation context
+- Verify audio levels affect party activity analysis
 
-**Estimated Time**: 2-3 hours
+**Estimated Time**: 4-5 hours
+
+**Completed**:
+- ✅ Implemented browser-based audio recording using Web Audio API and MediaRecorder
+- ✅ Created `AudioRecorder` component with automatic 3-second chunk capture
+- ✅ Integrated microphone permission handling with automatic start on user interaction
+- ✅ Implemented multi-service transcription attempt (Remote Whisper, Local Whisper, OpenAI)
+- ✅ Added Wyoming protocol support for faster-whisper service
+- ✅ Configured connection to remote Unraid Whisper service at `tiriage.porgy-palermo.ts.net:10300`
+- ✅ Integrated transcription results with MQTT publishing to UI backend
+- ✅ Added mock fallback for testing when remote service is unavailable
+- ✅ Transcripts appear in Party UI "Transcripts" panel with full pipeline integration
+- ✅ Audio recording starts automatically on first user click/keydown/touchstart
 
 ---
 
-## 🧹 REPOSITORY CLEANUP
-
-### T-003: Remove MacBook-Specific Code and Documentation
-**Status**: TODO  
-**Priority**: HIGH  
-**Goal**: Remove obsolete MacBook references and code
-
-**Context**: MacBook is no longer the target platform - WSL2 laptop is the hub
-
-**Tasks**:
-- Audit entire repository for MacBook references
-- Remove `macbook/` directory and all contents
-- Update documentation to remove MacBook mentions
-- Remove MacBook-specific Docker configurations
-- Update README and architecture docs
-- Preserve any valuable MacBook-specific code in comments/docs
-
-**Acceptance**:
-- No MacBook references in active code
-- `macbook/` directory completely removed
-- Documentation reflects WSL2 laptop as hub
-- No confusion for new developers
-
-**Test**:
-- Search repository for "macbook" - should return only historical references
-- Verify no MacBook-specific code in active services
-- Check that documentation is clear about current architecture
-
-**Estimated Time**: 1-2 hours
-
----
-
-### T-004: Remove Windows-Specific Code and Documentation  
+### T-010: Add Encoder Input Integration and Requests
 **Status**: TODO  
 **Priority**: MEDIUM  
-**Goal**: Remove obsolete Windows-specific code
+**Goal**: Interactive encoder input system for party engagement
 
-**Context**: Windows directory may contain outdated configurations
+**Context**: 
+- ESP32 nodes have encoder input capability
+- System should detect encoder manipulations
+- System should also request encoder interactions
+- Creates interactive party experience
 
 **Tasks**:
-- Audit `windows/` directory for obsolete content
-- Remove Windows-specific configurations that are no longer needed
-- Update documentation to remove Windows-specific instructions
-- Preserve any valuable Windows-specific code in comments/docs
+- Implement encoder input detection and processing
+- Add encoder interaction requests from system
+- Create encoder-based party games or interactions
+- Display encoder activity in Party UI
+- Add encoder data to LLM observation context
 
 **Acceptance**:
-- No obsolete Windows-specific code in active use
-- Documentation reflects current WSL2 setup
-- No confusion for new developers
+- System detects encoder rotations/clicks
+- System can request encoder interactions
+- Encoder activity influences LLM observations
+- Party UI shows encoder interaction status
 
 **Test**:
-- Verify Windows directory doesn't contain active configurations
-- Check that documentation is clear about WSL2 setup
+- Rotate encoders, verify detection
+- Check system requests encoder interactions
+- Verify encoder data influences observations
 
-**Estimated Time**: 1 hour
+**Estimated Time**: 2-3 hours
 
 ---
 
-### T-005: Consolidate and Update Documentation
+### T-011: Implement Long-Term Data Aggregation and Learning
 **Status**: TODO  
-**Priority**: HIGH  
-**Goal**: Clear, accurate documentation for new developers
+**Priority**: MEDIUM  
+**Goal**: System builds knowledge over party duration
 
-**Context**: Multiple outdated docs causing confusion
+**Context**: 
+- System should remember and learn from party data over hours
+- Should report statistics like "patio has been very active tonight"
+- Should detect patterns and trends over time
+- Creates sophisticated party commentary
 
 **Tasks**:
-- Audit all documentation files for accuracy
-- Remove outdated architecture descriptions
-- Consolidate duplicate information
-- Update README with current setup instructions
-- Create clear getting-started guide
-- Update architecture diagrams
+- Implement persistent data storage for party sessions
+- Add time-based data aggregation (hourly, nightly statistics)
+- Create trend analysis for party activity patterns
+- Implement learning system that builds on previous data
+- Add sophisticated statistics reporting to LLM observations
 
 **Acceptance**:
-- Single source of truth for each topic
-- Documentation matches current codebase
-- New developers can follow docs without confusion
-- Clear separation between historical and current information
+- System remembers party data across hours
+- Reports meaningful statistics about node activity
+- Detects patterns and trends over time
+- LLM observations reference historical party data
 
 **Test**:
-- New developer follows docs to set up system
-- All documentation links work
-- No contradictory information
+- Run system for extended period, verify data persistence
+- Check statistics reporting in observations
+- Verify trend detection works over time
 
-**Estimated Time**: 2-3 hours
+**Estimated Time**: 4-5 hours
 
 ---
 
 ## 🧪 TESTING INFRASTRUCTURE
 
-### T-006: Establish Test-Driven Development Discipline
+### T-012: Establish Test-Driven Development Discipline
 **Status**: TODO  
 **Priority**: HIGH  
 **Goal**: Comprehensive testing at multiple levels

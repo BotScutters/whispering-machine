@@ -42,6 +42,9 @@ export class PartyApp {
         // Setup UI updates
         this.setupUIUpdates();
         
+        // Setup audio recording
+        this.setupAudioRecording();
+        
         // Start status monitoring
         this.startStatusMonitoring();
         
@@ -147,6 +150,49 @@ export class PartyApp {
 
         this.stateManager.subscribe('system_status', () => {
             this.updateSystemStatus();
+        });
+    }
+
+    /**
+     * Setup audio recording
+     */
+    setupAudioRecording() {
+        console.log('[PartyApp] Setting up audio recording...');
+        
+        // Import AudioRecorder component
+        import('../components/audio-recorder.js').then(({ AudioRecorder }) => {
+            this.audioRecorder = new AudioRecorder({
+                sampleRate: 16000,
+                chunkDurationMs: 3000,
+                whisperUrl: 'http://tiriage.porgy-palermo.ts.net:10300/transcribe',
+                mqttClient: this.mqttClient,
+                houseId: 'hidden_house'
+            });
+
+            // Set up error handling
+            this.audioRecorder.onError = (error) => {
+                console.error('[PartyApp] Audio recording error:', error);
+                this.status.whisper = false;
+                this.updateStatusIndicators();
+            };
+
+            // Start recording after a short delay
+            setTimeout(() => {
+                console.log('[PartyApp] Auto-starting audio recording...');
+                this.audioRecorder.startRecording().then(success => {
+                    if (success) {
+                        console.log('[PartyApp] Audio recording started successfully');
+                        this.status.whisper = true;
+                        this.updateStatusIndicators();
+                    } else {
+                        console.warn('[PartyApp] Failed to start audio recording');
+                        this.status.whisper = false;
+                        this.updateStatusIndicators();
+                    }
+                });
+            }, 2000);
+        }).catch(error => {
+            console.error('[PartyApp] Failed to load AudioRecorder:', error);
         });
     }
 
@@ -264,6 +310,7 @@ export class PartyApp {
      * Update sensor display
      */
     updateSensorDisplay() {
+        this.updateSensorStatusDisplay();
         const nodes = this.stateManager.get('nodes') || {};
         const activeNodes = Object.keys(nodes).filter(nodeId => 
             nodes[nodeId] && nodes[nodeId].status === 'active'
@@ -300,6 +347,71 @@ export class PartyApp {
         if (activeNodesEl) {
             activeNodesEl.textContent = `${activeNodes.length}/3`;
         }
+    }
+
+    /**
+     * Update sensor status display in sensorStatus div
+     */
+    updateSensorStatusDisplay() {
+        const sensorStatusEl = document.getElementById('sensorStatus');
+        if (!sensorStatusEl) return;
+
+        const stateManagerNodes = this.stateManager.get('nodes') || {};
+        const statusNodes = this.status.nodes || {};
+        let html = '';
+
+        // Node name mapping
+        const getNodeName = (nodeId) => {
+            const names = {
+                'node1': 'Dining Room',
+                'node2': 'Second Floor',
+                'node3': 'Attic'
+            };
+            return names[nodeId] || nodeId;
+        };
+
+        // Iterate through all nodes
+        for (let i = 1; i <= 3; i++) {
+            const nodeId = `node${i}`;
+            const nodeStatus = statusNodes[nodeId];
+            const nodeData = stateManagerNodes[nodeId];
+            
+            if (nodeStatus && nodeStatus.status === 'active' && nodeData) {
+                const audioData = nodeData.audio || {};
+                const occupancy = nodeData.occupancy || {};
+                const ring = nodeData.ring || {};
+                
+                // Scale RMS for better visualization
+                const rmsScaled = (audioData.rms || 0) * 10000;
+                const zcrScaled = (audioData.zcr || 0) * 125;
+                
+                // Visual progress bars
+                const rmsBars = '█'.repeat(Math.min(Math.floor(rmsScaled), 30));
+                const zcrBars = '█'.repeat(Math.min(Math.floor(zcrScaled), 30));
+                
+                // Occupancy emoji
+                const occupancyEmoji = occupancy.occupied ? '🟢' : '⚪';
+                
+                // LED color preview
+                const ledColor = ring.color ? `#${ring.color.toString(16).padStart(6, '0')}` : '#000000';
+                
+                html += `
+                    <div style="margin-bottom: 10px; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; font-size: 11px;">
+                        <strong>${getNodeName(nodeId)}</strong> ${occupancyEmoji}<br>
+                        RMS: ${rmsBars}<br>
+                        ZCR: ${zcrBars}
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div style="margin-bottom: 10px; padding: 8px; background: rgba(255,255,255,0.02); border-radius: 4px; font-size: 11px; color: #666;">
+                        <strong>${getNodeName(nodeId)}</strong> ⚪ OFFLINE
+                    </div>
+                `;
+            }
+        }
+
+        sensorStatusEl.innerHTML = html;
     }
 
     /**

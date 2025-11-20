@@ -1,8 +1,8 @@
 """
 Audio Capture Module
 
-Handles audio capture from MacBook built-in microphone using PyAudio.
-Designed to work with MacBook lid closed.
+Handles audio capture from system microphone using PyAudio.
+Designed for continuous operation.
 """
 
 import asyncio

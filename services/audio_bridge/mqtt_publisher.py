@@ -130,7 +130,7 @@ class MQTTPublisher:
             }
             
             # Publish to topic
-            topic = f"party/{self.house_id}/macbook/speech/transcript"
+            topic = f"party/{self.house_id}/audio_bridge/speech/transcript"
             payload = json.dumps(message)
             
             # Publish in executor to avoid blocking
@@ -173,7 +173,7 @@ class MQTTPublisher:
             }
             
             # Publish to topic
-            topic = f"party/{self.house_id}/macbook/audio/features"
+            topic = f"party/{self.house_id}/audio_bridge/audio/features"
             payload = json.dumps(message)
             
             # Publish in executor to avoid blocking
@@ -203,7 +203,7 @@ class MQTTPublisher:
                 "ts_ms": int(time.time() * 1000)
             }
             
-            topic = f"party/{self.house_id}/macbook/sys/heartbeat"
+            topic = f"party/{self.house_id}/audio_bridge/sys/heartbeat"
             payload = json.dumps(message)
             
             loop = asyncio.get_event_loop()
